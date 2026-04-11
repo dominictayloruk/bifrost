@@ -1173,11 +1173,19 @@ func (s *RDBConfigStore) GetVectorStoreConfig(ctx context.Context) (*vectorstore
 		}
 		return nil, err
 	}
-	return &vectorstore.Config{
-		Enabled: vectorStoreTableConfig.Enabled,
-		Config:  vectorStoreTableConfig.Config,
-		Type:    vectorstore.VectorStoreType(vectorStoreTableConfig.Type),
-	}, nil
+	if vectorStoreTableConfig.Config == nil || *vectorStoreTableConfig.Config == "" {
+		return &vectorstore.Config{
+			Enabled: vectorStoreTableConfig.Enabled,
+			Type:    vectorstore.VectorStoreType(vectorStoreTableConfig.Type),
+		}, nil
+	}
+	var vsConfig vectorstore.Config
+	if err := json.Unmarshal([]byte(*vectorStoreTableConfig.Config), &vsConfig); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal vector store config: %w", err)
+	}
+	vsConfig.Enabled = vectorStoreTableConfig.Enabled
+	vsConfig.Type = vectorstore.VectorStoreType(vectorStoreTableConfig.Type)
+	return &vsConfig, nil
 }
 
 // UpdateVectorStoreConfig updates the vector store configuration in the database.
