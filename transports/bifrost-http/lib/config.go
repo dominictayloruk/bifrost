@@ -3474,12 +3474,12 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 	}
 	switch vectorStoreConfig.Type {
 	case vectorstore.VectorStoreTypeWeaviate:
-		weaviateConfig, ok := vectorStoreConfig.Config.(*vectorstore.WeaviateConfig)
+		weaviateConfig, ok := vectorStoreConfig.Config.(vectorstore.WeaviateConfig)
 		if !ok {
 			return nil, fmt.Errorf("failed to cast vector store config to weaviate config")
 		}
 		// Create a copy to avoid modifying the original
-		redactedWeaviateConfig := *weaviateConfig
+		redactedWeaviateConfig := weaviateConfig
 		// Redact password if it exists
 		if redactedWeaviateConfig.APIKey != nil {
 			redactedWeaviateConfig.APIKey = redactedWeaviateConfig.APIKey.Redacted()
@@ -3489,12 +3489,12 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		return &redactedVectorStoreConfig, nil
 
 	case vectorstore.VectorStoreTypeRedis:
-		redisConfig, ok := vectorStoreConfig.Config.(*vectorstore.RedisConfig)
+		redisConfig, ok := vectorStoreConfig.Config.(vectorstore.RedisConfig)
 		if !ok {
 			return nil, fmt.Errorf("failed to cast vector store config to redis config")
 		}
 		// Create a copy to avoid modifying the original
-		redactedRedisConfig := *redisConfig
+		redactedRedisConfig := redisConfig
 		// Redact sensitive fields
 		if redactedRedisConfig.Password != nil {
 			redactedRedisConfig.Password = redactedRedisConfig.Password.Redacted()
