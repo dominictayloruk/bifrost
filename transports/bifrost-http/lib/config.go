@@ -127,9 +127,9 @@ type ConfigData struct {
 	// from config.json. Omitting this field or setting it to 2 uses v1.5.0+ semantics:
 	// empty = deny all, ["*"] = allow all. Setting it to 1 restores v1.4.x semantics:
 	// empty = allow all (equivalent to ["*"]).
-	Version           int                                   `json:"version,omitempty"`
-	Client            *configstore.ClientConfig             `json:"client"`
-	EncryptionKey     *schemas.EnvVar                       `json:"encryption_key"`
+	Version       int                       `json:"version,omitempty"`
+	Client        *configstore.ClientConfig `json:"client"`
+	EncryptionKey *schemas.EnvVar           `json:"encryption_key"`
 	// Deprecated: Use GovernanceConfig.AuthConfig instead
 	AuthConfig        *configstore.AuthConfig               `json:"auth_config,omitempty"`
 	Providers         map[string]configstore.ProviderConfig `json:"providers"`
@@ -643,6 +643,19 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 		if config.ConfigStore != nil {
 			if err = config.ConfigStore.UpdateVectorStoreConfig(ctx, configData.VectorStoreConfig); err != nil {
 				logger.Warn("failed to update vector store config: %v", err)
+			}
+		}
+	} else if configData.VectorStoreConfig == nil && config.ConfigStore != nil {
+		// Check DB for stored config
+		vsConfig, dbErr := config.ConfigStore.GetVectorStoreConfig(ctx)
+		if dbErr != nil {
+			return fmt.Errorf("failed to get vector store config from store: %w", dbErr)
+		}
+		if vsConfig != nil && vsConfig.Enabled {
+			logger.Info("connecting to vectorstore (from store)")
+			config.VectorStore, err = vectorstore.NewVectorStore(ctx, vsConfig, logger)
+			if err != nil {
+				return fmt.Errorf("failed to connect to vector store (from store): %w", err)
 			}
 		}
 	}
@@ -4003,13 +4016,14 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 	if vectorStoreConfig == nil {
 		return nil, nil
 	}
-	if vectorStoreConfig.Type == vectorstore.VectorStoreTypeWeaviate {
-		weaviateConfig, ok := vectorStoreConfig.Config.(*vectorstore.WeaviateConfig)
+	switch vectorStoreConfig.Type {
+	case vectorstore.VectorStoreTypeWeaviate:
+		weaviateConfig, ok := vectorStoreConfig.Config.(vectorstore.WeaviateConfig)
 		if !ok {
 			return nil, fmt.Errorf("failed to cast vector store config to weaviate config")
 		}
 		// Create a copy to avoid modifying the original
-		redactedWeaviateConfig := *weaviateConfig
+		redactedWeaviateConfig := weaviateConfig
 		// Redact password if it exists
 		if redactedWeaviateConfig.APIKey != nil {
 			redactedWeaviateConfig.APIKey = redactedWeaviateConfig.APIKey.Redacted()
@@ -4017,8 +4031,29 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		redactedVectorStoreConfig := *vectorStoreConfig
 		redactedVectorStoreConfig.Config = &redactedWeaviateConfig
 		return &redactedVectorStoreConfig, nil
+
+	case vectorstore.VectorStoreTypeRedis:
+		redisConfig, ok := vectorStoreConfig.Config.(vectorstore.RedisConfig)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast vector store config to redis config")
+		}
+		// Create a copy to avoid modifying the original
+		redactedRedisConfig := redisConfig
+		// Redact sensitive fields
+		if redactedRedisConfig.Password != nil {
+			redactedRedisConfig.Password = redactedRedisConfig.Password.Redacted()
+		}
+		if redactedRedisConfig.CACertPEM != nil {
+			redactedRedisConfig.CACertPEM = redactedRedisConfig.CACertPEM.Redacted()
+		}
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = &redactedRedisConfig
+		return &redactedVectorStoreConfig, nil
+
+	default:
+		// Return config as-is for unknown/future types (no sensitive fields to redact)
+		return vectorStoreConfig, nil
 	}
-	return nil, nil
 }
 
 // ValidateCustomProvider validates the custom provider configuration

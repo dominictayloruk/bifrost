@@ -885,3 +885,73 @@ func validateHeaderFilterConfig(config *configstoreTables.GlobalHeaderFilterConf
 
 	return nil
 }
+
+// getVectorStoreConfig handles GET /api/cache/config
+// Returns the current vector store configuration with sensitive fields redacted.
+func (h *ConfigHandler) getVectorStoreConfig(ctx *fasthttp.RequestCtx) {
+	config, err := h.store.GetVectorStoreConfigRedacted(ctx)
+	if err != nil {
+		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to get vector store config: %v", err))
+		return
+	}
+	if config == nil {
+		SendJSON(ctx, map[string]any{
+			"enabled": false,
+			"type":    "",
+			"config":  nil,
+		})
+		return
+	}
+	SendJSON(ctx, config)
+}
+
+// updateVectorStoreConfig handles PUT /api/cache/config
+// Persists a new vector store configuration and marks restart as required.
+func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
+	var req vectorstore.Config
+	if err := json.Unmarshal(ctx.PostBody(), &req); err != nil {
+		SendError(ctx, fasthttp.StatusBadRequest, fmt.Sprintf("invalid request body: %v", err))
+		return
+	}
+
+	if req.Type == "" {
+		SendError(ctx, fasthttp.StatusBadRequest, "vector store type is required")
+		return
+	}
+
+	if req.Enabled {
+		switch req.Type {
+		case vectorstore.VectorStoreTypeRedis:
+			redisConfig, ok := req.Config.(vectorstore.RedisConfig)
+			if !ok {
+				SendError(ctx, fasthttp.StatusBadRequest, "invalid redis config")
+				return
+			}
+			if redisConfig.Addr == nil || redisConfig.Addr.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "redis address is required")
+				return
+			}
+		case vectorstore.VectorStoreTypeWeaviate:
+			weaviateConfig, ok := req.Config.(vectorstore.WeaviateConfig)
+			if !ok {
+				SendError(ctx, fasthttp.StatusBadRequest, "invalid weaviate config")
+				return
+			}
+			if weaviateConfig.Host == nil || weaviateConfig.Host.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "weaviate host is required")
+				return
+			}
+		}
+	}
+
+	if err := h.store.UpdateVectorStoreConfigAndReinit(ctx, &req); err != nil {
+		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to update vector store config: %v", err))
+		return
+	}
+
+	SendJSON(ctx, map[string]any{
+		"success":          true,
+		"restart_required": true,
+		"restart_reason":   "Vector store configuration changed. Restart Bifrost to apply.",
+	})
+}
