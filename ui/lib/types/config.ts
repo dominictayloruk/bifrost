@@ -588,5 +588,22 @@ export interface ProviderFormData {
 	custom_provider_config?: FormCustomProviderConfig;
 }
 
+// Vector Store types
+export interface VectorStoreRedisConfig {
+	addr: EnvVar;
+	username?: EnvVar;
+	password?: EnvVar;
+	db: EnvVar;
+	pool_size: number;
+	use_tls: EnvVar;
+	cluster_mode?: EnvVar;
+}
+
+export interface VectorStoreConfig {
+	enabled: boolean;
+	type: string;
+	config: VectorStoreRedisConfig | Record<string, unknown> | null;
+}
+
 // Status types
 export type ProviderStatus = "active" | "error" | "deleted";

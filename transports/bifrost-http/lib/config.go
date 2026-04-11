@@ -3472,7 +3472,8 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 	if vectorStoreConfig == nil {
 		return nil, nil
 	}
-	if vectorStoreConfig.Type == vectorstore.VectorStoreTypeWeaviate {
+	switch vectorStoreConfig.Type {
+	case vectorstore.VectorStoreTypeWeaviate:
 		weaviateConfig, ok := vectorStoreConfig.Config.(*vectorstore.WeaviateConfig)
 		if !ok {
 			return nil, fmt.Errorf("failed to cast vector store config to weaviate config")
@@ -3486,8 +3487,48 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		redactedVectorStoreConfig := *vectorStoreConfig
 		redactedVectorStoreConfig.Config = &redactedWeaviateConfig
 		return &redactedVectorStoreConfig, nil
+
+	case vectorstore.VectorStoreTypeRedis:
+		redisConfig, ok := vectorStoreConfig.Config.(*vectorstore.RedisConfig)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast vector store config to redis config")
+		}
+		// Create a copy to avoid modifying the original
+		redactedRedisConfig := *redisConfig
+		// Redact sensitive fields
+		if redactedRedisConfig.Password != nil {
+			redactedRedisConfig.Password = redactedRedisConfig.Password.Redacted()
+		}
+		if redactedRedisConfig.CACertPEM != nil {
+			redactedRedisConfig.CACertPEM = redactedRedisConfig.CACertPEM.Redacted()
+		}
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = &redactedRedisConfig
+		return &redactedVectorStoreConfig, nil
+
+	default:
+		// Return config as-is for unknown/future types (no sensitive fields to redact)
+		return vectorStoreConfig, nil
 	}
-	return nil, nil
+}
+
+// UpdateVectorStoreConfigAndReinit persists a new vector store config
+// and marks restart as required. The vector store connection itself is
+// not hot-reloaded — the user must restart Bifrost for changes to take effect.
+func (c *Config) UpdateVectorStoreConfigAndReinit(ctx context.Context, config *vectorstore.Config) error {
+	if c.ConfigStore == nil {
+		return fmt.Errorf("config store not available")
+	}
+	if err := c.ConfigStore.UpdateVectorStoreConfig(ctx, config); err != nil {
+		return fmt.Errorf("failed to update vector store config: %w", err)
+	}
+	if err := c.ConfigStore.SetRestartRequiredConfig(ctx, &configstoreTables.RestartRequiredConfig{
+		Required: true,
+		Reason:   "Vector store configuration changed. Restart required to apply.",
+	}); err != nil {
+		logger.Warn("failed to set restart required flag: %v", err)
+	}
+	return nil
 }
 
 // ValidateCustomProvider validates the custom provider configuration

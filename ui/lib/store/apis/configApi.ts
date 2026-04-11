@@ -1,5 +1,5 @@
 import { IS_ENTERPRISE } from "@/lib/constants/config";
-import { BifrostConfig, GlobalProxyConfig, LatestReleaseResponse } from "@/lib/types/config";
+import { BifrostConfig, GlobalProxyConfig, LatestReleaseResponse, VectorStoreConfig } from "@/lib/types/config";
 import axios from "axios";
 import { baseApi } from "./baseApi";
 
@@ -95,6 +95,24 @@ export const configApi = baseApi.injectEndpoints({
 			}),
 			invalidatesTags: ["Config"],
 		}),
+
+		// Get vector store configuration
+		getVectorStoreConfig: builder.query<VectorStoreConfig, void>({
+			query: () => ({
+				url: "/cache/config",
+			}),
+			providesTags: ["CacheConfig"],
+		}),
+
+		// Update vector store configuration
+		updateVectorStoreConfig: builder.mutation<{ success: boolean; restart_required: boolean }, VectorStoreConfig>({
+			query: (data) => ({
+				url: "/cache/config",
+				method: "PUT",
+				body: data,
+			}),
+			invalidatesTags: ["CacheConfig", "Config"],
+		}),
 	}),
 });
 
@@ -107,4 +125,6 @@ export const {
 	useLazyGetCoreConfigQuery,
 	useGetLatestReleaseQuery,
 	useLazyGetLatestReleaseQuery,
+	useGetVectorStoreConfigQuery,
+	useUpdateVectorStoreConfigMutation,
 } = configApi;
