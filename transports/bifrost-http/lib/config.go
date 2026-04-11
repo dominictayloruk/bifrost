@@ -609,7 +609,7 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 			logger.Info("connecting to vectorstore (from store)")
 			config.VectorStore, err = vectorstore.NewVectorStore(ctx, vsConfig, logger)
 			if err != nil {
-				logger.Fatal("failed to connect to vector store: %v", err)
+				return fmt.Errorf("failed to connect to vector store (from store): %w", err)
 			}
 		}
 	}
