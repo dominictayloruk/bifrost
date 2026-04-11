@@ -18,6 +18,7 @@ import (
 	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
 	"github.com/maximhq/bifrost/framework/encrypt"
 	"github.com/maximhq/bifrost/framework/modelcatalog"
+	"github.com/maximhq/bifrost/framework/vectorstore"
 	"github.com/maximhq/bifrost/plugins/compat"
 	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
 	"github.com/valyala/fasthttp"
@@ -78,6 +79,8 @@ func (h *ConfigHandler) RegisterRoutes(r *router.Router, middlewares ...schemas.
 	r.GET("/api/proxy-config", lib.ChainMiddlewares(h.getProxyConfig, middlewares...))
 	r.PUT("/api/proxy-config", lib.ChainMiddlewares(h.updateProxyConfig, middlewares...))
 	r.POST("/api/pricing/force-sync", lib.ChainMiddlewares(h.forceSyncPricing, middlewares...))
+	r.GET("/api/cache/config", lib.ChainMiddlewares(h.getVectorStoreConfig, middlewares...))
+	r.PUT("/api/cache/config", lib.ChainMiddlewares(h.updateVectorStoreConfig, middlewares...))
 }
 
 // getVersion handles GET /api/version - Get the current version
@@ -941,6 +944,33 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "weaviate host is required")
 				return
 			}
+		case vectorstore.VectorStoreTypeQdrant:
+			qdrantConfig, ok := req.Config.(vectorstore.QdrantConfig)
+			if !ok {
+				SendError(ctx, fasthttp.StatusBadRequest, "invalid qdrant config")
+				return
+			}
+			if qdrantConfig.Host.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "qdrant host is required")
+				return
+			}
+		case vectorstore.VectorStoreTypePinecone:
+			pineconeConfig, ok := req.Config.(vectorstore.PineconeConfig)
+			if !ok {
+				SendError(ctx, fasthttp.StatusBadRequest, "invalid pinecone config")
+				return
+			}
+			if pineconeConfig.APIKey.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "pinecone API key is required")
+				return
+			}
+			if pineconeConfig.IndexHost.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "pinecone index host is required")
+				return
+			}
+		default:
+			SendError(ctx, fasthttp.StatusBadRequest, fmt.Sprintf("unsupported vector store type: %s", req.Type))
+			return
 		}
 	}
 

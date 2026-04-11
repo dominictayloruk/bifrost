@@ -638,7 +638,7 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 		logger.Info("connecting to vectorstore")
 		config.VectorStore, err = vectorstore.NewVectorStore(ctx, configData.VectorStoreConfig, logger)
 		if err != nil {
-			logger.Fatal("failed to connect to vector store: %v", err)
+			return fmt.Errorf("failed to connect to vector store: %w", err)
 		}
 		if config.ConfigStore != nil {
 			if err = config.ConfigStore.UpdateVectorStoreConfig(ctx, configData.VectorStoreConfig); err != nil {
@@ -646,7 +646,7 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 			}
 		}
 	} else if configData.VectorStoreConfig == nil && config.ConfigStore != nil {
-		// Check DB for stored config
+		// Check DB for stored config (only if not explicitly enabled in file)
 		vsConfig, dbErr := config.ConfigStore.GetVectorStoreConfig(ctx)
 		if dbErr != nil {
 			return fmt.Errorf("failed to get vector store config from store: %w", dbErr)
@@ -4016,6 +4016,9 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 	if vectorStoreConfig == nil {
 		return nil, nil
 	}
+	if vectorStoreConfig.Config == nil {
+		return vectorStoreConfig, nil
+	}
 	switch vectorStoreConfig.Type {
 	case vectorstore.VectorStoreTypeWeaviate:
 		weaviateConfig, ok := vectorStoreConfig.Config.(vectorstore.WeaviateConfig)
@@ -4050,10 +4053,51 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		redactedVectorStoreConfig.Config = &redactedRedisConfig
 		return &redactedVectorStoreConfig, nil
 
+	case vectorstore.VectorStoreTypeQdrant:
+		qdrantConfig, ok := vectorStoreConfig.Config.(vectorstore.QdrantConfig)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast vector store config to qdrant config")
+		}
+		redactedQdrantConfig := qdrantConfig
+		redactedQdrantConfig.APIKey = *redactedQdrantConfig.APIKey.Redacted()
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = &redactedQdrantConfig
+		return &redactedVectorStoreConfig, nil
+
+	case vectorstore.VectorStoreTypePinecone:
+		pineconeConfig, ok := vectorStoreConfig.Config.(vectorstore.PineconeConfig)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast vector store config to pinecone config")
+		}
+		redactedPineconeConfig := pineconeConfig
+		redactedPineconeConfig.APIKey = *redactedPineconeConfig.APIKey.Redacted()
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = &redactedPineconeConfig
+		return &redactedVectorStoreConfig, nil
+
 	default:
 		// Return config as-is for unknown/future types (no sensitive fields to redact)
 		return vectorStoreConfig, nil
 	}
+}
+
+// UpdateVectorStoreConfigAndReinit persists a new vector store config
+// and marks restart as required. The vector store connection itself is
+// not hot-reloaded — the user must restart Bifrost for changes to take effect.
+func (c *Config) UpdateVectorStoreConfigAndReinit(ctx context.Context, config *vectorstore.Config) error {
+	if c.ConfigStore == nil {
+		return fmt.Errorf("config store not available")
+	}
+	if err := c.ConfigStore.UpdateVectorStoreConfig(ctx, config); err != nil {
+		return fmt.Errorf("failed to update vector store config: %w", err)
+	}
+	if err := c.ConfigStore.SetRestartRequiredConfig(ctx, &configstoreTables.RestartRequiredConfig{
+		Required: true,
+		Reason:   "Vector store configuration changed. Restart required to apply.",
+	}); err != nil {
+		return fmt.Errorf("failed to set restart required flag: %w", err)
+	}
+	return nil
 }
 
 // ValidateCustomProvider validates the custom provider configuration
