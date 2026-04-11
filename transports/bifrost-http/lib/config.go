@@ -603,8 +603,9 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 		// Check DB for stored config
 		vsConfig, dbErr := config.ConfigStore.GetVectorStoreConfig(ctx)
 		if dbErr != nil {
-			logger.Warn("failed to get vector store config from store: %v", dbErr)
-		} else if vsConfig != nil && vsConfig.Enabled {
+			return fmt.Errorf("failed to get vector store config from store: %w", dbErr)
+		}
+		if vsConfig != nil && vsConfig.Enabled {
 			logger.Info("connecting to vectorstore (from store)")
 			config.VectorStore, err = vectorstore.NewVectorStore(ctx, vsConfig, logger)
 			if err != nil {
