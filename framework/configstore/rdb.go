@@ -1179,12 +1179,21 @@ func (s *RDBConfigStore) GetVectorStoreConfig(ctx context.Context) (*vectorstore
 			Type:    vectorstore.VectorStoreType(vectorStoreTableConfig.Type),
 		}, nil
 	}
+	// The DB stores the inner config (e.g. RedisConfig) as JSON separately from
+	// the Type and Enabled columns. Reconstruct the wrapper JSON so that
+	// vectorstore.Config.UnmarshalJSON can dispatch by type.
+	wrapperJSON, err := json.Marshal(map[string]any{
+		"enabled": vectorStoreTableConfig.Enabled,
+		"type":    vectorStoreTableConfig.Type,
+		"config":  json.RawMessage(*vectorStoreTableConfig.Config),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to build vector store config wrapper: %w", err)
+	}
 	var vsConfig vectorstore.Config
-	if err := json.Unmarshal([]byte(*vectorStoreTableConfig.Config), &vsConfig); err != nil {
+	if err := json.Unmarshal(wrapperJSON, &vsConfig); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal vector store config: %w", err)
 	}
-	vsConfig.Enabled = vectorStoreTableConfig.Enabled
-	vsConfig.Type = vectorstore.VectorStoreType(vectorStoreTableConfig.Type)
 	return &vsConfig, nil
 }
 
