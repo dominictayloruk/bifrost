@@ -74,7 +74,7 @@ export default function CachingView() {
 			formState.use_tls.value !== serverState.formState.use_tls.value);
 
 	const handleSave = async () => {
-		if (!formState.addr.value?.trim()) {
+		if (enabled && !formState.addr.value?.trim()) {
 			toast.error("Redis address is required");
 			return;
 		}
@@ -199,22 +199,25 @@ export default function CachingView() {
 										/>
 									</div>
 								</div>
-								<div className="flex items-center justify-between">
-									{hasChanges && <RestartWarning />}
-									<div className="ml-auto">
-										<Button onClick={handleSave} disabled={!hasChanges || isUpdating || !hasSettingsUpdateAccess} size="sm">
-											{isUpdating ? (
-												<>
-													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-													Saving...
-												</>
-											) : (
-												"Save Vector Store Config"
-											)}
-										</Button>
-									</div>
-								</div>
 							</>
+						)}
+
+						{hasChanges && (
+							<div className="flex items-center justify-between">
+								<RestartWarning />
+								<div className="ml-auto">
+									<Button onClick={handleSave} disabled={!hasChanges || isUpdating || !hasSettingsUpdateAccess} size="sm">
+										{isUpdating ? (
+											<>
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												Saving...
+											</>
+										) : (
+											"Save Vector Store Config"
+										)}
+									</Button>
+								</div>
+							</div>
 						)}
 					</div>
 
