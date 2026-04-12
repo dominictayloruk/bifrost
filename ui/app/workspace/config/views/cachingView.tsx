@@ -233,24 +233,24 @@ export default function CachingView() {
 
 	const handleSave = async () => {
 		if (enabled) {
-			if (provider === "redis" && !formStates.redis.addr.value?.trim()) {
+			if (provider === "redis" && !formStates.redis.addr.value?.trim() && !formStates.redis.addr.from_env) {
 				toast.error("Redis address is required");
 				return;
 			}
-			if (provider === "weaviate" && !formStates.weaviate.host.value?.trim()) {
+			if (provider === "weaviate" && !formStates.weaviate.host.value?.trim() && !formStates.weaviate.host.from_env) {
 				toast.error("Weaviate host is required");
 				return;
 			}
-			if (provider === "qdrant" && !formStates.qdrant.host.value?.trim()) {
+			if (provider === "qdrant" && !formStates.qdrant.host.value?.trim() && !formStates.qdrant.host.from_env) {
 				toast.error("Qdrant host is required");
 				return;
 			}
 			if (provider === "pinecone") {
-				if (!formStates.pinecone.api_key.value?.trim()) {
+				if (!formStates.pinecone.api_key.value?.trim() && !formStates.pinecone.api_key.from_env) {
 					toast.error("Pinecone API key is required");
 					return;
 				}
-				if (!formStates.pinecone.index_host.value?.trim()) {
+				if (!formStates.pinecone.index_host.value?.trim() && !formStates.pinecone.index_host.from_env) {
 					toast.error("Pinecone index host is required");
 					return;
 				}
