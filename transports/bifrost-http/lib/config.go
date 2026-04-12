@@ -599,7 +599,7 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 				logger.Warn("failed to update vector store config: %v", err)
 			}
 		}
-	} else if (configData.VectorStoreConfig == nil || !configData.VectorStoreConfig.Enabled) && config.ConfigStore != nil {
+	} else if configData.VectorStoreConfig == nil && config.ConfigStore != nil {
 		// Check DB for stored config (only if not explicitly enabled in file)
 		vsConfig, dbErr := config.ConfigStore.GetVectorStoreConfig(ctx)
 		if dbErr != nil {
@@ -3504,6 +3504,28 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		}
 		redactedVectorStoreConfig := *vectorStoreConfig
 		redactedVectorStoreConfig.Config = &redactedRedisConfig
+		return &redactedVectorStoreConfig, nil
+
+	case vectorstore.VectorStoreTypeQdrant:
+		qdrantConfig, ok := vectorStoreConfig.Config.(vectorstore.QdrantConfig)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast vector store config to qdrant config")
+		}
+		redactedQdrantConfig := qdrantConfig
+		redactedQdrantConfig.APIKey = *redactedQdrantConfig.APIKey.Redacted()
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = &redactedQdrantConfig
+		return &redactedVectorStoreConfig, nil
+
+	case vectorstore.VectorStoreTypePinecone:
+		pineconeConfig, ok := vectorStoreConfig.Config.(vectorstore.PineconeConfig)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast vector store config to pinecone config")
+		}
+		redactedPineconeConfig := pineconeConfig
+		redactedPineconeConfig.APIKey = *redactedPineconeConfig.APIKey.Redacted()
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = &redactedPineconeConfig
 		return &redactedVectorStoreConfig, nil
 
 	default:

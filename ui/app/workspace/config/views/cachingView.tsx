@@ -15,7 +15,7 @@ import {
 } from "@/lib/store";
 import { EnvVar } from "@/lib/types/schemas";
 import { AlertTriangle, CircleCheck } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { RbacOperation, RbacResource, useRbac } from "@enterprise/lib";
 import { toast } from "sonner";
 import PluginsForm from "./pluginsForm";
@@ -222,10 +222,17 @@ export default function CachingView() {
 		setSynced(true);
 	}
 
-	const hasChanges =
-		serverSnapshot !== null &&
-		JSON.stringify({ enabled, provider, config: buildConfigPayload(provider, formStates) }) !==
-			JSON.stringify({ enabled: serverSnapshot.enabled, provider: serverSnapshot.provider, config: buildConfigPayload(serverSnapshot.provider, serverSnapshot.forms) });
+	const hasChanges = useMemo(() => {
+		if (serverSnapshot === null) return false;
+		return (
+			JSON.stringify({ enabled, provider, config: buildConfigPayload(provider, formStates) }) !==
+			JSON.stringify({
+				enabled: serverSnapshot.enabled,
+				provider: serverSnapshot.provider,
+				config: buildConfigPayload(serverSnapshot.provider, serverSnapshot.forms),
+			})
+		);
+	}, [enabled, provider, formStates, serverSnapshot]);
 
 	const handleProviderChange = (value: string) => {
 		setProvider(value as VectorStoreProvider);
@@ -233,24 +240,25 @@ export default function CachingView() {
 
 	const handleSave = async () => {
 		if (enabled) {
-			if (provider === "redis" && !formStates.redis.addr.value?.trim() && !formStates.redis.addr.from_env) {
+			const isEnvVarSet = (ev: EnvVar) => (ev.from_env ? !!ev.env_var?.trim() : !!ev.value?.trim());
+			if (provider === "redis" && !isEnvVarSet(formStates.redis.addr)) {
 				toast.error("Redis address is required");
 				return;
 			}
-			if (provider === "weaviate" && !formStates.weaviate.host.value?.trim() && !formStates.weaviate.host.from_env) {
+			if (provider === "weaviate" && !isEnvVarSet(formStates.weaviate.host)) {
 				toast.error("Weaviate host is required");
 				return;
 			}
-			if (provider === "qdrant" && !formStates.qdrant.host.value?.trim() && !formStates.qdrant.host.from_env) {
+			if (provider === "qdrant" && !isEnvVarSet(formStates.qdrant.host)) {
 				toast.error("Qdrant host is required");
 				return;
 			}
 			if (provider === "pinecone") {
-				if (!formStates.pinecone.api_key.value?.trim() && !formStates.pinecone.api_key.from_env) {
+				if (!isEnvVarSet(formStates.pinecone.api_key)) {
 					toast.error("Pinecone API key is required");
 					return;
 				}
-				if (!formStates.pinecone.index_host.value?.trim() && !formStates.pinecone.index_host.from_env) {
+				if (!isEnvVarSet(formStates.pinecone.index_host)) {
 					toast.error("Pinecone index host is required");
 					return;
 				}
