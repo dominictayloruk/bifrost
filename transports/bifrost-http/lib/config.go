@@ -599,8 +599,8 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 				logger.Warn("failed to update vector store config: %v", err)
 			}
 		}
-	} else if configData.VectorStoreConfig == nil && config.ConfigStore != nil {
-		// Check DB for stored config
+	} else if (configData.VectorStoreConfig == nil || !configData.VectorStoreConfig.Enabled) && config.ConfigStore != nil {
+		// Check DB for stored config (only if not explicitly enabled in file)
 		vsConfig, dbErr := config.ConfigStore.GetVectorStoreConfig(ctx)
 		if dbErr != nil {
 			return fmt.Errorf("failed to get vector store config from store: %w", dbErr)

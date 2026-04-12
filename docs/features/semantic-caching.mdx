@@ -52,6 +52,17 @@ For detailed setup instructions and configuration options for each vector store,
 
 <Tabs group="vector-store-setup">
 
+<Tab title="Web UI">
+
+1. Open Bifrost UI at `http://localhost:8080` and go to **Settings**.
+2. In the **Vector Store** card, toggle the switch to enable it.
+3. Select a provider (e.g. **Weaviate**) from the dropdown and fill in the provider-specific fields.
+4. Click **Save**. A restart of the Bifrost server is required for changes to take effect.
+
+The Web UI supports all four vector store providers — Redis/Valkey, Weaviate, Qdrant, and Pinecone — with provider-specific configuration fields including TLS, authentication, and connection options.
+
+</Tab>
+
 <Tab title="Go SDK">
 
 ```go
@@ -102,7 +113,7 @@ if err != nil {
 
 ## Semantic Cache Configuration
 
-> **UI Note**: The current Web UI flow configures provider-backed semantic caching. If you want direct-only mode (`dimension: 1` with no `provider`), configure it through `config.json`.
+> **UI Note**: The Web UI configures provider-backed semantic caching. If you want direct-only mode (`dimension: 1` with no `provider`), configure it through `config.json`. See [Direct Hash Mode](#direct-hash-mode-embedding-free) for details.
 
 <Tabs group="cache-config">
 
@@ -155,19 +166,18 @@ bifrostConfig := schemas.BifrostConfig{
 
 ![Semantic Cache Plugin Configuration](../media/ui-semantic-cache-config.png)
 
-**Note**: Make sure you have a vector store setup (using `config.json`) before configuring the semantic cache plugin.
-
-1. **Navigate to Settings**
-   - Open Bifrost UI at `http://localhost:8080`
-   - Go to Settings.
+1. **Configure the Vector Store first**
+   - Open Bifrost UI at `http://localhost:8080` and go to **Settings**.
+   - In the **Vector Store** card at the top of the page, enable and configure a vector store provider (see [Vector Store Setup](#vector-store-setup)).
+   - Save and restart Bifrost so the vector store is connected.
 
 2. **Configure Semantic Cache Plugin**
-
-- Toggle the plugin switch to enable it, and fill in the required fields.
+   - Once the vector store is connected, the **Enable Semantic Caching** section becomes available below the vector store card.
+   - Toggle the switch to enable it, and fill in the required fields.
 
 **Required Fields:**
-- **Provider**: The provider to use for caching.
-- **Embedding Model**: The embedding model to use for caching.
+- **Provider**: Select from your configured providers (keys are inherited automatically).
+- **Embedding Model**: The embedding model to use for caching (e.g. `text-embedding-3-small`).
 - **Dimension**: The embedding dimension for the configured embedding model.
 
 **Note**: Changes will need a restart of the Bifrost server to take effect, because the plugin is loaded on startup only.
@@ -300,6 +310,10 @@ bifrost:
 </Tab>
 
 </Tabs>
+
+<Info>
+**Web UI**: Direct hash mode is not configurable through the Web UI. The UI is designed for provider-backed semantic caching. If you load a direct-only config via `config.json`, the UI will display a warning banner and allow you to view the settings, but you should continue using `config.json` to manage direct-only mode.
+</Info>
 
 When initialized this way, all requests automatically use direct hash matching regardless of the `x-bf-cache-type` header. No embeddings are generated, and no embedding provider credentials are needed.
 

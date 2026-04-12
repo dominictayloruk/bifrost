@@ -18,9 +18,9 @@ import (
 	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
 	"github.com/maximhq/bifrost/framework/encrypt"
 	"github.com/maximhq/bifrost/framework/modelcatalog"
+	"github.com/maximhq/bifrost/framework/vectorstore"
 	"github.com/maximhq/bifrost/plugins/litellmcompat"
 	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
-	"github.com/maximhq/bifrost/framework/vectorstore"
 	"github.com/valyala/fasthttp"
 )
 
@@ -923,6 +923,33 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "weaviate host is required")
 				return
 			}
+		case vectorstore.VectorStoreTypeQdrant:
+			qdrantConfig, ok := req.Config.(vectorstore.QdrantConfig)
+			if !ok {
+				SendError(ctx, fasthttp.StatusBadRequest, "invalid qdrant config")
+				return
+			}
+			if qdrantConfig.Host.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "qdrant host is required")
+				return
+			}
+		case vectorstore.VectorStoreTypePinecone:
+			pineconeConfig, ok := req.Config.(vectorstore.PineconeConfig)
+			if !ok {
+				SendError(ctx, fasthttp.StatusBadRequest, "invalid pinecone config")
+				return
+			}
+			if pineconeConfig.APIKey.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "pinecone API key is required")
+				return
+			}
+			if pineconeConfig.IndexHost.GetValue() == "" {
+				SendError(ctx, fasthttp.StatusBadRequest, "pinecone index host is required")
+				return
+			}
+		default:
+			SendError(ctx, fasthttp.StatusBadRequest, fmt.Sprintf("unsupported vector store type: %s", req.Type))
+			return
 		}
 	}
 
@@ -932,8 +959,8 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 	}
 
 	SendJSON(ctx, map[string]any{
-		"success":           true,
-		"restart_required":  true,
-		"restart_reason":    "Vector store configuration changed. Restart Bifrost to apply.",
+		"success":          true,
+		"restart_required": true,
+		"restart_reason":   "Vector store configuration changed. Restart Bifrost to apply.",
 	})
 }

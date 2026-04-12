@@ -203,7 +203,7 @@ func NewVectorStore(ctx context.Context, config *Config, logger schemas.Logger) 
 		}
 		weaviateConfig, ok := config.Config.(WeaviateConfig)
 		if !ok {
-			return nil, fmt.Errorf("invalid weaviate config")
+			return nil, fmt.Errorf("invalid weaviate config: got %T", config.Config)
 		}
 		return newWeaviateStore(ctx, &weaviateConfig, logger)
 	case VectorStoreTypeRedis:
@@ -212,7 +212,7 @@ func NewVectorStore(ctx context.Context, config *Config, logger schemas.Logger) 
 		}
 		redisConfig, ok := config.Config.(RedisConfig)
 		if !ok {
-			return nil, fmt.Errorf("invalid redis config")
+			return nil, fmt.Errorf("invalid redis config: got %T", config.Config)
 		}
 		return newRedisStore(ctx, redisConfig, logger)
 	case VectorStoreTypeQdrant:
@@ -221,7 +221,7 @@ func NewVectorStore(ctx context.Context, config *Config, logger schemas.Logger) 
 		}
 		qdrantConfig, ok := config.Config.(QdrantConfig)
 		if !ok {
-			return nil, fmt.Errorf("invalid qdrant config")
+			return nil, fmt.Errorf("invalid qdrant config: got %T", config.Config)
 		}
 		return newQdrantStore(ctx, &qdrantConfig, logger)
 	case VectorStoreTypePinecone:
@@ -230,7 +230,7 @@ func NewVectorStore(ctx context.Context, config *Config, logger schemas.Logger) 
 		}
 		pineconeConfig, ok := config.Config.(PineconeConfig)
 		if !ok {
-			return nil, fmt.Errorf("invalid pinecone config")
+			return nil, fmt.Errorf("invalid pinecone config: got %T", config.Config)
 		}
 		return newPineconeStore(ctx, &pineconeConfig, logger)
 	}
