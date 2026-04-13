@@ -372,7 +372,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-redis-addr">Address*</Label>
 												<EnvVarInput
-													id="vs-redis-addr"
+													id="vs-redis-addr" data-testid="vs-redis-addr"
 													placeholder="redis:6379"
 													value={formStates.redis.addr}
 													onChange={(val) => updateRedis({ addr: val })}
@@ -381,7 +381,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-redis-db">Database</Label>
 												<EnvVarInput
-													id="vs-redis-db"
+													id="vs-redis-db" data-testid="vs-redis-db"
 													placeholder="0"
 													value={formStates.redis.db}
 													onChange={(val) => updateRedis({ db: val })}
@@ -392,7 +392,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-redis-username">Username</Label>
 												<EnvVarInput
-													id="vs-redis-username"
+													id="vs-redis-username" data-testid="vs-redis-username"
 													placeholder="Optional"
 													value={formStates.redis.username}
 													onChange={(val) => updateRedis({ username: val })}
@@ -401,7 +401,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-redis-password">Password</Label>
 												<EnvVarInput
-													id="vs-redis-password"
+													id="vs-redis-password" data-testid="vs-redis-password"
 													type="password"
 													placeholder="Optional"
 													value={formStates.redis.password}
@@ -413,7 +413,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-redis-pool">Pool Size</Label>
 												<Input
-													id="vs-redis-pool"
+													id="vs-redis-pool" data-testid="vs-redis-pool"
 													type="number"
 													min={1}
 													value={formStates.redis.pool_size}
@@ -424,7 +424,7 @@ export default function CachingView() {
 												<Label htmlFor="vs-redis-cluster">Cluster Mode</Label>
 												<div className="flex h-9 items-center">
 													<Switch
-														id="vs-redis-cluster"
+														id="vs-redis-cluster" data-testid="vs-redis-cluster"
 														size="md"
 														checked={formStates.redis.cluster_mode.value === "true" || formStates.redis.cluster_mode.value === "1"}
 														onCheckedChange={(checked) =>
@@ -439,7 +439,7 @@ export default function CachingView() {
 												<Label htmlFor="vs-redis-tls">Use TLS</Label>
 												<div className="flex h-9 items-center">
 													<Switch
-														id="vs-redis-tls"
+														id="vs-redis-tls" data-testid="vs-redis-tls"
 														size="md"
 														checked={formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1"}
 														onCheckedChange={(checked) =>
@@ -453,7 +453,7 @@ export default function CachingView() {
 													<Label htmlFor="vs-redis-skip-verify">Skip TLS Verification</Label>
 													<div className="flex h-9 items-center">
 														<Switch
-															id="vs-redis-skip-verify"
+															id="vs-redis-skip-verify" data-testid="vs-redis-skip-verify"
 															size="md"
 															checked={formStates.redis.insecure_skip_verify.value === "true" || formStates.redis.insecure_skip_verify.value === "1"}
 															onCheckedChange={(checked) =>
@@ -469,7 +469,7 @@ export default function CachingView() {
 												<div className="space-y-2">
 													<Label htmlFor="vs-redis-ca-cert">CA Certificate (PEM)</Label>
 													<EnvVarInput
-														id="vs-redis-ca-cert"
+														id="vs-redis-ca-cert" data-testid="vs-redis-ca-cert"
 														placeholder="Optional"
 														value={formStates.redis.ca_cert_pem}
 														onChange={(val) => updateRedis({ ca_cert_pem: val })}
@@ -486,7 +486,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-weaviate-host">Host*</Label>
 												<EnvVarInput
-													id="vs-weaviate-host"
+													id="vs-weaviate-host" data-testid="vs-weaviate-host"
 													placeholder="localhost:8080"
 													value={formStates.weaviate.host}
 													onChange={(val) => updateWeaviate({ host: val })}
@@ -495,7 +495,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-weaviate-scheme">Scheme</Label>
 												<Select value={formStates.weaviate.scheme} onValueChange={(val) => updateWeaviate({ scheme: val })}>
-													<SelectTrigger id="vs-weaviate-scheme" className="w-full">
+													<SelectTrigger id="vs-weaviate-scheme" data-testid="vs-weaviate-scheme" className="w-full">
 														<SelectValue />
 													</SelectTrigger>
 													<SelectContent>
@@ -509,7 +509,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-weaviate-apikey">API Key</Label>
 												<EnvVarInput
-													id="vs-weaviate-apikey"
+													id="vs-weaviate-apikey" data-testid="vs-weaviate-apikey"
 													placeholder="Optional"
 													value={formStates.weaviate.api_key}
 													onChange={(val) => updateWeaviate({ api_key: val })}
@@ -520,7 +520,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-weaviate-grpc-host">gRPC Host</Label>
 												<EnvVarInput
-													id="vs-weaviate-grpc-host"
+													id="vs-weaviate-grpc-host" data-testid="vs-weaviate-grpc-host"
 													placeholder="localhost:50051"
 													value={formStates.weaviate.grpc_host}
 													onChange={(val) => updateWeaviate({ grpc_host: val })}
@@ -530,7 +530,7 @@ export default function CachingView() {
 												<Label htmlFor="vs-weaviate-grpc-secured">gRPC Secured</Label>
 												<div className="flex h-9 items-center">
 													<Switch
-														id="vs-weaviate-grpc-secured"
+														id="vs-weaviate-grpc-secured" data-testid="vs-weaviate-grpc-secured"
 														size="md"
 														checked={formStates.weaviate.grpc_secured}
 														onCheckedChange={(checked) => updateWeaviate({ grpc_secured: checked })}
@@ -547,7 +547,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-qdrant-host">Host*</Label>
 												<EnvVarInput
-													id="vs-qdrant-host"
+													id="vs-qdrant-host" data-testid="vs-qdrant-host"
 													placeholder="localhost"
 													value={formStates.qdrant.host}
 													onChange={(val) => updateQdrant({ host: val })}
@@ -556,7 +556,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-qdrant-port">Port</Label>
 												<EnvVarInput
-													id="vs-qdrant-port"
+													id="vs-qdrant-port" data-testid="vs-qdrant-port"
 													placeholder="6334"
 													value={formStates.qdrant.port}
 													onChange={(val) => updateQdrant({ port: val })}
@@ -567,7 +567,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-qdrant-apikey">API Key</Label>
 												<EnvVarInput
-													id="vs-qdrant-apikey"
+													id="vs-qdrant-apikey" data-testid="vs-qdrant-apikey"
 													placeholder="Optional"
 													value={formStates.qdrant.api_key}
 													onChange={(val) => updateQdrant({ api_key: val })}
@@ -577,7 +577,7 @@ export default function CachingView() {
 												<Label htmlFor="vs-qdrant-tls">Use TLS</Label>
 												<div className="flex h-9 items-center">
 													<Switch
-														id="vs-qdrant-tls"
+														id="vs-qdrant-tls" data-testid="vs-qdrant-tls"
 														size="md"
 														checked={formStates.qdrant.use_tls.value === "true" || formStates.qdrant.use_tls.value === "1"}
 														onCheckedChange={(checked) =>
@@ -596,7 +596,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-pinecone-apikey">API Key*</Label>
 												<EnvVarInput
-													id="vs-pinecone-apikey"
+													id="vs-pinecone-apikey" data-testid="vs-pinecone-apikey"
 													placeholder="pc-..."
 													value={formStates.pinecone.api_key}
 													onChange={(val) => updatePinecone({ api_key: val })}
@@ -605,7 +605,7 @@ export default function CachingView() {
 											<div className="space-y-2">
 												<Label htmlFor="vs-pinecone-host">Index Host*</Label>
 												<EnvVarInput
-													id="vs-pinecone-host"
+													id="vs-pinecone-host" data-testid="vs-pinecone-host"
 													placeholder="your-index-xxxxxxx.svc.environment.pinecone.io"
 													value={formStates.pinecone.index_host}
 													onChange={(val) => updatePinecone({ index_host: val })}
