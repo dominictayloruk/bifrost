@@ -922,6 +922,18 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Validate the type is supported regardless of enabled state
+	switch req.Type {
+	case vectorstore.VectorStoreTypeRedis,
+		vectorstore.VectorStoreTypeWeaviate,
+		vectorstore.VectorStoreTypeQdrant,
+		vectorstore.VectorStoreTypePinecone:
+		// valid
+	default:
+		SendError(ctx, fasthttp.StatusBadRequest, fmt.Sprintf("unsupported vector store type: %s", req.Type))
+		return
+	}
+
 	if req.Enabled {
 		switch req.Type {
 		case vectorstore.VectorStoreTypeRedis:
@@ -968,9 +980,6 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "pinecone index host is required")
 				return
 			}
-		default:
-			SendError(ctx, fasthttp.StatusBadRequest, fmt.Sprintf("unsupported vector store type: %s", req.Type))
-			return
 		}
 	}
 
