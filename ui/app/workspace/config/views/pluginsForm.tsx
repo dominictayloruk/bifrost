@@ -215,7 +215,7 @@ export default function PluginsForm({ isVectorStoreEnabled }: PluginsFormProps) 
 					<div className="flex-1 space-y-0.5">
 						<label htmlFor="enable-caching" className="text-sm font-medium flex items-center gap-2">
 							{isSemanticCacheEnabled && isVectorStoreEnabled && (
-								<CircleCheck className="text-green-600 h-4 w-4 flex-shrink-0" />
+								<CircleCheck className="text-green-600 h-4 w-4 flex-shrink-0" aria-hidden="true" />
 							)}
 							Enable Semantic Caching
 						</label>

@@ -54,7 +54,7 @@ For detailed setup instructions and configuration options for each vector store,
 
 <Tab title="Web UI">
 
-1. Open Bifrost UI at `http://localhost:8080` and go to **Settings**.
+1. Open Bifrost UI at `http://localhost:8080` and go to **Settings > Caching**.
 2. In the **Vector Store** card, toggle the switch to enable it.
 3. Select a provider (e.g. **Weaviate**) from the dropdown and fill in the provider-specific fields.
 4. Click **Save**. A restart of the Bifrost server is required for changes to take effect.
@@ -167,7 +167,7 @@ bifrostConfig := schemas.BifrostConfig{
 ![Semantic Cache Plugin Configuration](../media/ui-semantic-cache-config.png)
 
 1. **Configure the Vector Store first**
-   - Open Bifrost UI at `http://localhost:8080` and go to **Settings**.
+   - Open Bifrost UI at `http://localhost:8080` and go to **Settings > Caching**.
    - In the **Vector Store** card at the top of the page, enable and configure a vector store provider (see [Vector Store Setup](#vector-store-setup)).
    - Save and restart Bifrost so the vector store is connected.
 

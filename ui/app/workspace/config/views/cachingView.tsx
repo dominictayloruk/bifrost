@@ -201,7 +201,7 @@ function parseServerConfig(type: string, config: Record<string, unknown> | null)
 
 export default function CachingView() {
 	const { data: bifrostConfig, isLoading: configLoading, error: configError } = useGetCoreConfigQuery({ fromDB: true });
-	const { data: vsConfig, isLoading: vsLoading } = useGetVectorStoreConfigQuery();
+	const { data: vsConfig, isLoading: vsLoading, error: vsError } = useGetVectorStoreConfigQuery();
 	const [updateVectorStoreConfig, { isLoading: isUpdating }] = useUpdateVectorStoreConfigMutation();
 	const hasSettingsUpdateAccess = useRbac(RbacResource.Settings, RbacOperation.Update);
 
@@ -313,7 +313,16 @@ export default function CachingView() {
 				</Alert>
 			)}
 
-			{!isLoading && !configError && (
+			{vsError !== undefined && (
+				<Alert variant="destructive">
+					<AlertTriangle className="h-4 w-4" />
+					<AlertDescription>
+						{getErrorMessage(vsError) || "Failed to load vector store configuration. Please try again."}
+					</AlertDescription>
+				</Alert>
+			)}
+
+			{!isLoading && !configError && !vsError && (
 				<>
 					{/* Vector Store Configuration Card */}
 					<div className="rounded-lg border p-4 space-y-4" data-testid="vector-store-card">
@@ -321,7 +330,7 @@ export default function CachingView() {
 							<div className="flex-1 space-y-0.5">
 								<Label className="text-sm font-medium flex items-center gap-2">
 									{isVectorStoreEnabled && (
-										<CircleCheck className="text-green-600 h-4 w-4 flex-shrink-0" />
+										<CircleCheck className="text-green-600 h-4 w-4 flex-shrink-0" aria-hidden="true" />
 									)}
 									Vector Store
 								</Label>
@@ -333,11 +342,9 @@ export default function CachingView() {
 							</div>
 							<div className="flex items-center gap-2">
 								<Switch id="vs-enabled" size="md" checked={enabled} onCheckedChange={setEnabled} disabled={!hasSettingsUpdateAccess} data-testid="vs-enabled-switch" />
-								{enabled && (
-									<Button onClick={handleSave} disabled={!hasChanges || isUpdating || !hasSettingsUpdateAccess} size="sm" data-testid="vs-save-btn">
-										{isUpdating ? "Saving..." : "Save"}
-									</Button>
-								)}
+								<Button onClick={handleSave} disabled={!hasChanges || isUpdating || !hasSettingsUpdateAccess} size="sm" data-testid="vs-save-btn">
+									{isUpdating ? "Saving..." : "Save"}
+								</Button>
 							</div>
 						</div>
 

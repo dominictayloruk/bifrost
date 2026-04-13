@@ -599,10 +599,32 @@ export interface VectorStoreRedisConfig {
 	cluster_mode?: EnvVar;
 }
 
+export interface VectorStoreWeaviateConfig {
+	scheme: string;
+	host: EnvVar;
+	api_key?: EnvVar;
+	grpc_config?: {
+		host: EnvVar;
+		secured: boolean;
+	};
+}
+
+export interface VectorStoreQdrantConfig {
+	host: EnvVar;
+	port: EnvVar;
+	api_key?: EnvVar;
+	use_tls: EnvVar;
+}
+
+export interface VectorStorePineconeConfig {
+	api_key: EnvVar;
+	index_host: EnvVar;
+}
+
 export interface VectorStoreConfig {
 	enabled: boolean;
-	type: string;
-	config: VectorStoreRedisConfig | Record<string, unknown> | null;
+	type: "redis" | "weaviate" | "qdrant" | "pinecone" | string;
+	config: VectorStoreRedisConfig | VectorStoreWeaviateConfig | VectorStoreQdrantConfig | VectorStorePineconeConfig | Record<string, unknown> | null;
 }
 
 // Status types

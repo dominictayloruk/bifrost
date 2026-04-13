@@ -83,4 +83,20 @@ test.describe('Caching - Vector Store Config', () => {
     const saveVisible = await cachingSettingsPage.isSaveVisible()
     expect(saveVisible).toBe(true)
   })
+
+  test('should persist disabled state', async ({ cachingSettingsPage }) => {
+    await cachingSettingsPage.goto()
+    // Ensure enabled first
+    if (!(await cachingSettingsPage.isEnabled())) {
+      await cachingSettingsPage.toggleEnabled()
+      await cachingSettingsPage.save()
+    }
+    // Disable and save
+    await cachingSettingsPage.toggleEnabled()
+    expect(await cachingSettingsPage.isEnabled()).toBe(false)
+    await cachingSettingsPage.save()
+    // Reload and verify persisted
+    await cachingSettingsPage.goto()
+    expect(await cachingSettingsPage.isEnabled()).toBe(false)
+  })
 })

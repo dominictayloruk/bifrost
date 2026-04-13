@@ -3472,6 +3472,9 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 	if vectorStoreConfig == nil {
 		return nil, nil
 	}
+	if vectorStoreConfig.Config == nil {
+		return vectorStoreConfig, nil
+	}
 	switch vectorStoreConfig.Type {
 	case vectorstore.VectorStoreTypeWeaviate:
 		weaviateConfig, ok := vectorStoreConfig.Config.(vectorstore.WeaviateConfig)
@@ -3548,7 +3551,7 @@ func (c *Config) UpdateVectorStoreConfigAndReinit(ctx context.Context, config *v
 		Required: true,
 		Reason:   "Vector store configuration changed. Restart required to apply.",
 	}); err != nil {
-		logger.Warn("failed to set restart required flag: %v", err)
+		return fmt.Errorf("failed to set restart required flag: %w", err)
 	}
 	return nil
 }
