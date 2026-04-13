@@ -4088,14 +4088,11 @@ func (c *Config) UpdateVectorStoreConfigAndReinit(ctx context.Context, config *v
 	if c.ConfigStore == nil {
 		return fmt.Errorf("config store not available")
 	}
-	if err := c.ConfigStore.UpdateVectorStoreConfig(ctx, config); err != nil {
-		return fmt.Errorf("failed to update vector store config: %w", err)
-	}
-	if err := c.ConfigStore.SetRestartRequiredConfig(ctx, &configstoreTables.RestartRequiredConfig{
+	if err := c.ConfigStore.UpdateVectorStoreConfigAndSetRestart(ctx, config, &configstoreTables.RestartRequiredConfig{
 		Required: true,
 		Reason:   "Vector store configuration changed. Restart required to apply.",
 	}); err != nil {
-		return fmt.Errorf("failed to set restart required flag: %w", err)
+		return fmt.Errorf("failed to update vector store config: %w", err)
 	}
 	return nil
 }

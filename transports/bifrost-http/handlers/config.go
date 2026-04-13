@@ -930,7 +930,7 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "invalid redis config")
 				return
 			}
-			if redisConfig.Addr == nil || redisConfig.Addr.GetValue() == "" {
+			if redisConfig.Addr == nil || (redisConfig.Addr.GetValue() == "" && !redisConfig.Addr.IsFromEnv()) {
 				SendError(ctx, fasthttp.StatusBadRequest, "redis address is required")
 				return
 			}
@@ -940,7 +940,7 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "invalid weaviate config")
 				return
 			}
-			if weaviateConfig.Host == nil || weaviateConfig.Host.GetValue() == "" {
+			if weaviateConfig.Host == nil || (weaviateConfig.Host.GetValue() == "" && !weaviateConfig.Host.IsFromEnv()) {
 				SendError(ctx, fasthttp.StatusBadRequest, "weaviate host is required")
 				return
 			}
@@ -950,7 +950,7 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "invalid qdrant config")
 				return
 			}
-			if qdrantConfig.Host.GetValue() == "" {
+			if qdrantConfig.Host.GetValue() == "" && !qdrantConfig.Host.IsFromEnv() {
 				SendError(ctx, fasthttp.StatusBadRequest, "qdrant host is required")
 				return
 			}
@@ -960,11 +960,11 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 				SendError(ctx, fasthttp.StatusBadRequest, "invalid pinecone config")
 				return
 			}
-			if pineconeConfig.APIKey.GetValue() == "" {
+			if pineconeConfig.APIKey.GetValue() == "" && !pineconeConfig.APIKey.IsFromEnv() {
 				SendError(ctx, fasthttp.StatusBadRequest, "pinecone API key is required")
 				return
 			}
-			if pineconeConfig.IndexHost.GetValue() == "" {
+			if pineconeConfig.IndexHost.GetValue() == "" && !pineconeConfig.IndexHost.IsFromEnv() {
 				SendError(ctx, fasthttp.StatusBadRequest, "pinecone index host is required")
 				return
 			}
