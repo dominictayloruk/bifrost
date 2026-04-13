@@ -1218,6 +1218,38 @@ func (s *RDBConfigStore) UpdateVectorStoreConfig(ctx context.Context, config *ve
 	})
 }
 
+// UpdateVectorStoreConfigAndSetRestart atomically updates the vector store configuration
+// and sets the restart required flag in a single database transaction.
+func (s *RDBConfigStore) UpdateVectorStoreConfigAndSetRestart(ctx context.Context, config *vectorstore.Config, restart *tables.RestartRequiredConfig) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		// Delete existing vector store config
+		if err := tx.WithContext(ctx).Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&tables.TableVectorStoreConfig{}).Error; err != nil {
+			return err
+		}
+		jsonConfig, err := marshalToStringPtr(config.Config)
+		if err != nil {
+			return err
+		}
+		record := &tables.TableVectorStoreConfig{
+			Type:    string(config.Type),
+			Enabled: config.Enabled,
+			Config:  jsonConfig,
+		}
+		if err := tx.WithContext(ctx).Create(record).Error; err != nil {
+			return err
+		}
+		// Set restart required flag in same transaction
+		restartJSON, err := json.Marshal(restart)
+		if err != nil {
+			return fmt.Errorf("failed to marshal restart required config: %w", err)
+		}
+		return tx.WithContext(ctx).Save(&tables.TableGovernanceConfig{
+			Key:   tables.ConfigRestartRequiredKey,
+			Value: string(restartJSON),
+		}).Error
+	})
+}
+
 // GetLogsStoreConfig retrieves the logs store configuration from the database.
 func (s *RDBConfigStore) GetLogsStoreConfig(ctx context.Context) (*logstore.Config, error) {
 	var dbConfig tables.TableLogStoreConfig
