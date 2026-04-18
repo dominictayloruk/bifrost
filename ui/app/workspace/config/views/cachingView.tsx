@@ -106,10 +106,12 @@ const defaultFormStates: FormStates = {
 	},
 };
 
-function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates): Record<string, unknown> {
+function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates, serverConfig?: Record<string, unknown> | null): Record<string, unknown> {
+	const base: Record<string, unknown> = serverConfig ? { ...serverConfig } : {};
 	switch (provider) {
 		case "redis": {
 			const redis: Record<string, unknown> = {
+				...base,
 				addr: forms.redis.addr,
 				db: forms.redis.db,
 				pool_size: forms.redis.pool_size,
@@ -127,6 +129,7 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates): R
 		}
 		case "weaviate": {
 			const weaviate: Record<string, unknown> = {
+				...base,
 				scheme: forms.weaviate.scheme,
 				host: forms.weaviate.host,
 				api_key: forms.weaviate.api_key,
@@ -141,6 +144,7 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates): R
 		}
 		case "qdrant":
 			return {
+				...base,
 				host: forms.qdrant.host,
 				port: forms.qdrant.port,
 				api_key: forms.qdrant.api_key,
@@ -148,6 +152,7 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates): R
 			};
 		case "pinecone":
 			return {
+				...base,
 				api_key: forms.pinecone.api_key,
 				index_host: forms.pinecone.index_host,
 			};
@@ -291,7 +296,7 @@ export default function CachingView() {
 			const response = await updateVectorStoreConfig({
 				enabled,
 				type: provider,
-				config: buildConfigPayload(provider, formStates),
+				config: buildConfigPayload(provider, formStates, vsConfig?.config as Record<string, unknown> | null),
 			}).unwrap();
 			const snapshot = { enabled, provider, forms: structuredClone(formStates) };
 			setServerSnapshot(snapshot);

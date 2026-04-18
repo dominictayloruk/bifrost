@@ -38,8 +38,16 @@ type WeaviateConfig struct {
 
 // Validate checks that all required fields are present in the Weaviate config.
 func (c WeaviateConfig) Validate() error {
-	if c.Host == nil || (c.Host.GetValue() == "" && !c.Host.IsFromEnv()) {
+	if c.Host == nil || (strings.TrimSpace(c.Host.GetValue()) == "" && !c.Host.IsFromEnv()) {
 		return fmt.Errorf("weaviate host is required")
+	}
+	if c.Scheme == "" {
+		return fmt.Errorf("weaviate scheme is required")
+	}
+	if c.GrpcConfig != nil {
+		if c.GrpcConfig.Host == nil || (strings.TrimSpace(c.GrpcConfig.Host.GetValue()) == "" && !c.GrpcConfig.Host.IsFromEnv()) {
+			return fmt.Errorf("weaviate grpc host is required")
+		}
 	}
 	return nil
 }

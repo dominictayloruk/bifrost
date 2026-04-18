@@ -20,7 +20,7 @@ type QdrantConfig struct {
 
 // Validate checks that all required fields are present in the Qdrant config.
 func (c QdrantConfig) Validate() error {
-	if c.Host.GetValue() == "" && !c.Host.IsFromEnv() {
+	if strings.TrimSpace(c.Host.GetValue()) == "" && !c.Host.IsFromEnv() {
 		return fmt.Errorf("qdrant host is required")
 	}
 	return nil

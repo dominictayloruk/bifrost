@@ -19,10 +19,10 @@ type PineconeConfig struct {
 
 // Validate checks that all required fields are present in the Pinecone config.
 func (c PineconeConfig) Validate() error {
-	if c.APIKey.GetValue() == "" && !c.APIKey.IsFromEnv() {
+	if strings.TrimSpace(c.APIKey.GetValue()) == "" && !c.APIKey.IsFromEnv() {
 		return fmt.Errorf("pinecone API key is required")
 	}
-	if c.IndexHost.GetValue() == "" && !c.IndexHost.IsFromEnv() {
+	if strings.TrimSpace(c.IndexHost.GetValue()) == "" && !c.IndexHost.IsFromEnv() {
 		return fmt.Errorf("pinecone index host is required")
 	}
 	return nil
