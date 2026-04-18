@@ -934,6 +934,75 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Fetch existing config so we can preserve redacted secrets
+	var existingRaw *vectorstore.Config
+	if h.store.ConfigStore != nil {
+		var err error
+		existingRaw, err = h.store.ConfigStore.GetVectorStoreConfig(ctx)
+		if err != nil {
+			SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to get existing vector store config: %v", err))
+			return
+		}
+	}
+	// Only merge if the existing config is for the same vector store type
+	if existingRaw != nil && existingRaw.Type != req.Type {
+		existingRaw = nil
+	}
+
+	// Merge redacted fields from the existing config so the UI doesn't
+	// overwrite real secrets with the redaction placeholder.
+	if existingRaw != nil && existingRaw.Config != nil {
+		switch req.Type {
+		case vectorstore.VectorStoreTypeRedis:
+			incoming, ok := req.Config.(vectorstore.RedisConfig)
+			if ok {
+				existing, eOk := existingRaw.Config.(vectorstore.RedisConfig)
+				if eOk {
+					if incoming.Password != nil && incoming.Password.IsRedacted() {
+						incoming.Password = existing.Password
+					}
+					if incoming.CACertPEM != nil && incoming.CACertPEM.IsRedacted() {
+						incoming.CACertPEM = existing.CACertPEM
+					}
+					req.Config = incoming
+				}
+			}
+		case vectorstore.VectorStoreTypeWeaviate:
+			incoming, ok := req.Config.(vectorstore.WeaviateConfig)
+			if ok {
+				existing, eOk := existingRaw.Config.(vectorstore.WeaviateConfig)
+				if eOk {
+					if incoming.APIKey != nil && incoming.APIKey.IsRedacted() {
+						incoming.APIKey = existing.APIKey
+					}
+					req.Config = incoming
+				}
+			}
+		case vectorstore.VectorStoreTypeQdrant:
+			incoming, ok := req.Config.(vectorstore.QdrantConfig)
+			if ok {
+				existing, eOk := existingRaw.Config.(vectorstore.QdrantConfig)
+				if eOk {
+					if incoming.APIKey.IsRedacted() {
+						incoming.APIKey = existing.APIKey
+					}
+					req.Config = incoming
+				}
+			}
+		case vectorstore.VectorStoreTypePinecone:
+			incoming, ok := req.Config.(vectorstore.PineconeConfig)
+			if ok {
+				existing, eOk := existingRaw.Config.(vectorstore.PineconeConfig)
+				if eOk {
+					if incoming.APIKey.IsRedacted() {
+						incoming.APIKey = existing.APIKey
+					}
+					req.Config = incoming
+				}
+			}
+		}
+	}
+
 	if req.Enabled {
 		switch req.Type {
 		case vectorstore.VectorStoreTypeRedis:
