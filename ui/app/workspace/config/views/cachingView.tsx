@@ -21,18 +21,12 @@ function isEnvVarTrue(ev: EnvVar): boolean {
 	return ev.from_env || ev.value === "true" || ev.value === "1";
 }
 
-/**
- * Returns true when an EnvVar carries a user-supplied value (or env-var ref).
- * Returns false when the field is empty or still holds a redaction placeholder
- * that must never be sent back to the backend as an actual secret.
- */
 function isEnvVarPopulated(ev: EnvVar): boolean {
 	if (ev.from_env) return true;
 	if (!ev.value || isRedacted(ev.value)) return false;
 	return true;
 }
 
-/** Canonical empty EnvVar suitable for sending to the backend to clear a field. */
 const clearedEnvVar: EnvVar = { value: "", env_var: "", from_env: false };
 
 type VectorStoreProvider = "redis" | "weaviate" | "qdrant" | "pinecone";
