@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { getErrorMessage, useGetCoreConfigQuery, useGetVectorStoreConfigQuery, useUpdateVectorStoreConfigMutation } from "@/lib/store";
+import { vectorStoreFormSchema } from "@/lib/schemas/vectorStoreForm";
 import { EnvVar } from "@/lib/types/schemas";
 import { isRedacted } from "@/lib/utils/validation";
 import { AlertTriangle, CircleCheck } from "lucide-react";
@@ -280,28 +281,10 @@ export default function CachingView() {
 
 	const handleSave = async () => {
 		if (enabled) {
-			const isEnvVarSet = (ev: EnvVar) => (ev.from_env ? !!ev.env_var?.trim() : !!ev.value?.trim());
-			if (provider === "redis" && !isEnvVarSet(formStates.redis.addr)) {
-				toast.error("Redis address is required");
+			const result = vectorStoreFormSchema.safeParse({ provider, ...formStates[provider] });
+			if (!result.success) {
+				toast.error(result.error.issues[0].message);
 				return;
-			}
-			if (provider === "weaviate" && !isEnvVarSet(formStates.weaviate.host)) {
-				toast.error("Weaviate host is required");
-				return;
-			}
-			if (provider === "qdrant" && !isEnvVarSet(formStates.qdrant.host)) {
-				toast.error("Qdrant host is required");
-				return;
-			}
-			if (provider === "pinecone") {
-				if (!isEnvVarSet(formStates.pinecone.api_key)) {
-					toast.error("Pinecone API key is required");
-					return;
-				}
-				if (!isEnvVarSet(formStates.pinecone.index_host)) {
-					toast.error("Pinecone index host is required");
-					return;
-				}
 			}
 		}
 

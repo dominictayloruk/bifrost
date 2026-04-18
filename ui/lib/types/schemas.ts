@@ -63,7 +63,7 @@ export const envVarSchema = z.object({
 });
 
 // Helper to check if an envVar field has a value or env reference
-function isEnvVarSet(v: { value?: string; env_var?: string } | undefined): boolean {
+export function isEnvVarSet(v: { value?: string; env_var?: string } | undefined): boolean {
 	if (!v) return false;
 	return !!v.value?.trim() || !!v.env_var?.trim();
 }
