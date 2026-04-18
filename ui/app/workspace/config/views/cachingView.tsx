@@ -638,10 +638,12 @@ export default function CachingView() {
 					</div>
 
 					{(hasChanges || needsRestart) && <RestartWarning />}
-
-					{/* Semantic Cache Card */}
-					<PluginsForm isVectorStoreEnabled={isVectorStoreEnabled} />
 				</>
+			)}
+
+			{/* Semantic Cache Card — rendered independently of vector store config */}
+			{!configLoading && !configError && (
+				<PluginsForm isVectorStoreEnabled={isVectorStoreEnabled} />
 			)}
 		</div>
 	);
