@@ -1,3 +1,6 @@
+[fix]: account for env-var-driven TLS when building Redis vector store config payload in UI [@dominictayloruk](https://github.com/dominictayloruk)
+[fix]: use value types for redacted vector store config to prevent type assertion failures [@dominictayloruk](https://github.com/dominictayloruk)
+[fix]: preserve redacted secrets when updating vector store config via UI [@dominictayloruk](https://github.com/dominictayloruk)
 [fix]: gracefully handle DB-persisted vector store connection failure at startup [@dominictayloruk](https://github.com/dominictayloruk)
 [fix]: render PluginsForm independently of vector store config API errors [@dominictayloruk](https://github.com/dominictayloruk)
 [feat]: add vector store config UI on Settings > Caching page with all four providers [@dominictayloruk](https://github.com/dominictayloruk)

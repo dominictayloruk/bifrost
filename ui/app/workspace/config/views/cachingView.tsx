@@ -113,7 +113,7 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates): R
 			};
 			if (forms.redis.username.value || forms.redis.username.from_env) redis.username = forms.redis.username;
 			if (forms.redis.password.value || forms.redis.password.from_env) redis.password = forms.redis.password;
-			const tlsEnabled = forms.redis.use_tls.value === "true" || forms.redis.use_tls.value === "1";
+			const tlsEnabled = forms.redis.use_tls.from_env || forms.redis.use_tls.value === "true" || forms.redis.use_tls.value === "1";
 			if (tlsEnabled) {
 				redis.insecure_skip_verify = forms.redis.insecure_skip_verify;
 				if (forms.redis.ca_cert_pem.value || forms.redis.ca_cert_pem.from_env) redis.ca_cert_pem = forms.redis.ca_cert_pem;
@@ -466,7 +466,7 @@ export default function CachingView() {
 													/>
 												</div>
 											</div>
-											{(formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1") && (
+											{(formStates.redis.use_tls.from_env || formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1") && (
 												<div className="space-y-2">
 													<Label htmlFor="vs-redis-skip-verify">Skip TLS Verification</Label>
 													<div className="flex h-9 items-center">
@@ -482,7 +482,7 @@ export default function CachingView() {
 												</div>
 											)}
 										</div>
-										{(formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1") && (
+										{(formStates.redis.use_tls.from_env || formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1") && (
 											<div className="grid grid-cols-2 gap-4">
 												<div className="space-y-2">
 													<Label htmlFor="vs-redis-ca-cert">CA Certificate (PEM)</Label>
