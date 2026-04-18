@@ -54,6 +54,14 @@ type RedisConfig struct {
 	ContextTimeout  time.Duration `json:"context_timeout,omitempty"`    // Timeout for Redis operations (optional)
 }
 
+// Validate checks that all required fields are present in the Redis config.
+func (c RedisConfig) Validate() error {
+	if c.Addr == nil || (c.Addr.GetValue() == "" && !c.Addr.IsFromEnv()) {
+		return fmt.Errorf("redis address is required")
+	}
+	return nil
+}
+
 // RedisStore represents the Redis vector store.
 type RedisStore struct {
 	client redis.UniversalClient

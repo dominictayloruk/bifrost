@@ -1,3 +1,5 @@
+[feat]: add Validate() methods to vector store provider configs and Config struct [@dominictayloruk](https://github.com/dominictayloruk)
+[feat]: add MergeRedactedSecrets to Config with env-var-aware secret preservation [@dominictayloruk](https://github.com/dominictayloruk)
 [fix]: reconstruct wrapper JSON in GetVectorStoreConfig for correct UnmarshalJSON dispatch [@dominictayloruk](https://github.com/dominictayloruk)
 [feat]: add UpdateVectorStoreConfigAndSetRestart for atomic config and restart flag writes [@dominictayloruk](https://github.com/dominictayloruk)
 [fix]: improve vector store config type assertion error messages [@dominictayloruk](https://github.com/dominictayloruk)

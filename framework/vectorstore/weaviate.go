@@ -36,6 +36,14 @@ type WeaviateConfig struct {
 	Timeout time.Duration `json:"timeout,omitempty"` // Request timeout (optional)
 }
 
+// Validate checks that all required fields are present in the Weaviate config.
+func (c WeaviateConfig) Validate() error {
+	if c.Host == nil || (c.Host.GetValue() == "" && !c.Host.IsFromEnv()) {
+		return fmt.Errorf("weaviate host is required")
+	}
+	return nil
+}
+
 type WeaviateGrpcConfig struct {
 	// Host is the host of the weaviate server (host:port).
 	// If host is without a port number then the 80 port for insecured and 443 port for secured connections will be used.

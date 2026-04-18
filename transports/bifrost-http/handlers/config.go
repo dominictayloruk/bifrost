@@ -934,122 +934,19 @@ func (h *ConfigHandler) updateVectorStoreConfig(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	// Fetch existing config so we can preserve redacted secrets
-	var existingRaw *vectorstore.Config
+	// Preserve redacted secrets by merging with the existing stored config
 	if h.store.ConfigStore != nil {
-		var err error
-		existingRaw, err = h.store.ConfigStore.GetVectorStoreConfig(ctx)
+		existing, err := h.store.ConfigStore.GetVectorStoreConfig(ctx)
 		if err != nil {
 			SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to get existing vector store config: %v", err))
 			return
 		}
-	}
-	// Only merge if the existing config is for the same vector store type
-	if existingRaw != nil && existingRaw.Type != req.Type {
-		existingRaw = nil
+		req.MergeRedactedSecrets(existing)
 	}
 
-	// Merge redacted fields from the existing config so the UI doesn't
-	// overwrite real secrets with the redaction placeholder.
-	if existingRaw != nil && existingRaw.Config != nil {
-		switch req.Type {
-		case vectorstore.VectorStoreTypeRedis:
-			incoming, ok := req.Config.(vectorstore.RedisConfig)
-			if ok {
-				existing, eOk := existingRaw.Config.(vectorstore.RedisConfig)
-				if eOk {
-					if incoming.Password != nil && incoming.Password.IsRedacted() {
-						incoming.Password = existing.Password
-					}
-					if incoming.CACertPEM != nil && incoming.CACertPEM.IsRedacted() {
-						incoming.CACertPEM = existing.CACertPEM
-					}
-					req.Config = incoming
-				}
-			}
-		case vectorstore.VectorStoreTypeWeaviate:
-			incoming, ok := req.Config.(vectorstore.WeaviateConfig)
-			if ok {
-				existing, eOk := existingRaw.Config.(vectorstore.WeaviateConfig)
-				if eOk {
-					if incoming.APIKey != nil && incoming.APIKey.IsRedacted() {
-						incoming.APIKey = existing.APIKey
-					}
-					req.Config = incoming
-				}
-			}
-		case vectorstore.VectorStoreTypeQdrant:
-			incoming, ok := req.Config.(vectorstore.QdrantConfig)
-			if ok {
-				existing, eOk := existingRaw.Config.(vectorstore.QdrantConfig)
-				if eOk {
-					if incoming.APIKey.IsRedacted() {
-						incoming.APIKey = existing.APIKey
-					}
-					req.Config = incoming
-				}
-			}
-		case vectorstore.VectorStoreTypePinecone:
-			incoming, ok := req.Config.(vectorstore.PineconeConfig)
-			if ok {
-				existing, eOk := existingRaw.Config.(vectorstore.PineconeConfig)
-				if eOk {
-					if incoming.APIKey.IsRedacted() {
-						incoming.APIKey = existing.APIKey
-					}
-					req.Config = incoming
-				}
-			}
-		}
-	}
-
-	if req.Enabled {
-		switch req.Type {
-		case vectorstore.VectorStoreTypeRedis:
-			redisConfig, ok := req.Config.(vectorstore.RedisConfig)
-			if !ok {
-				SendError(ctx, fasthttp.StatusBadRequest, "invalid redis config")
-				return
-			}
-			if redisConfig.Addr == nil || (redisConfig.Addr.GetValue() == "" && !redisConfig.Addr.IsFromEnv()) {
-				SendError(ctx, fasthttp.StatusBadRequest, "redis address is required")
-				return
-			}
-		case vectorstore.VectorStoreTypeWeaviate:
-			weaviateConfig, ok := req.Config.(vectorstore.WeaviateConfig)
-			if !ok {
-				SendError(ctx, fasthttp.StatusBadRequest, "invalid weaviate config")
-				return
-			}
-			if weaviateConfig.Host == nil || (weaviateConfig.Host.GetValue() == "" && !weaviateConfig.Host.IsFromEnv()) {
-				SendError(ctx, fasthttp.StatusBadRequest, "weaviate host is required")
-				return
-			}
-		case vectorstore.VectorStoreTypeQdrant:
-			qdrantConfig, ok := req.Config.(vectorstore.QdrantConfig)
-			if !ok {
-				SendError(ctx, fasthttp.StatusBadRequest, "invalid qdrant config")
-				return
-			}
-			if qdrantConfig.Host.GetValue() == "" && !qdrantConfig.Host.IsFromEnv() {
-				SendError(ctx, fasthttp.StatusBadRequest, "qdrant host is required")
-				return
-			}
-		case vectorstore.VectorStoreTypePinecone:
-			pineconeConfig, ok := req.Config.(vectorstore.PineconeConfig)
-			if !ok {
-				SendError(ctx, fasthttp.StatusBadRequest, "invalid pinecone config")
-				return
-			}
-			if pineconeConfig.APIKey.GetValue() == "" && !pineconeConfig.APIKey.IsFromEnv() {
-				SendError(ctx, fasthttp.StatusBadRequest, "pinecone API key is required")
-				return
-			}
-			if pineconeConfig.IndexHost.GetValue() == "" && !pineconeConfig.IndexHost.IsFromEnv() {
-				SendError(ctx, fasthttp.StatusBadRequest, "pinecone index host is required")
-				return
-			}
-		}
+	if err := req.Validate(); err != nil {
+		SendError(ctx, fasthttp.StatusBadRequest, err.Error())
+		return
 	}
 
 	if err := h.store.UpdateVectorStoreConfigAndReinit(ctx, &req); err != nil {

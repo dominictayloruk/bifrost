@@ -20,6 +20,11 @@ import { RbacOperation, RbacResource, useRbac } from "@enterprise/lib";
 import { toast } from "sonner";
 import PluginsForm from "./pluginsForm";
 
+/** Returns true when a boolean-like EnvVar should be considered enabled. */
+function isEnvVarTrue(ev: EnvVar): boolean {
+	return ev.from_env || ev.value === "true" || ev.value === "1";
+}
+
 type VectorStoreProvider = "redis" | "weaviate" | "qdrant" | "pinecone";
 
 const providerLabels: Record<VectorStoreProvider, string> = {
@@ -113,7 +118,7 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates): R
 			};
 			if (forms.redis.username.value || forms.redis.username.from_env) redis.username = forms.redis.username;
 			if (forms.redis.password.value || forms.redis.password.from_env) redis.password = forms.redis.password;
-			const tlsEnabled = forms.redis.use_tls.from_env || forms.redis.use_tls.value === "true" || forms.redis.use_tls.value === "1";
+			const tlsEnabled = isEnvVarTrue(forms.redis.use_tls);
 			if (tlsEnabled) {
 				redis.insecure_skip_verify = forms.redis.insecure_skip_verify;
 				if (forms.redis.ca_cert_pem.value || forms.redis.ca_cert_pem.from_env) redis.ca_cert_pem = forms.redis.ca_cert_pem;
@@ -459,14 +464,14 @@ export default function CachingView() {
 													<Switch
 														id="vs-redis-tls" data-testid="vs-redis-tls"
 														size="md"
-														checked={formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1"}
+														checked={isEnvVarTrue(formStates.redis.use_tls)}
 														onCheckedChange={(checked) =>
 															updateRedis({ use_tls: { value: checked ? "true" : "false", env_var: "", from_env: false } })
 														}
 													/>
 												</div>
 											</div>
-											{(formStates.redis.use_tls.from_env || formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1") && (
+											{isEnvVarTrue(formStates.redis.use_tls) && (
 												<div className="space-y-2">
 													<Label htmlFor="vs-redis-skip-verify">Skip TLS Verification</Label>
 													<div className="flex h-9 items-center">
@@ -482,7 +487,7 @@ export default function CachingView() {
 												</div>
 											)}
 										</div>
-										{(formStates.redis.use_tls.from_env || formStates.redis.use_tls.value === "true" || formStates.redis.use_tls.value === "1") && (
+										{isEnvVarTrue(formStates.redis.use_tls) && (
 											<div className="grid grid-cols-2 gap-4">
 												<div className="space-y-2">
 													<Label htmlFor="vs-redis-ca-cert">CA Certificate (PEM)</Label>
@@ -597,7 +602,7 @@ export default function CachingView() {
 													<Switch
 														id="vs-qdrant-tls" data-testid="vs-qdrant-tls"
 														size="md"
-														checked={formStates.qdrant.use_tls.value === "true" || formStates.qdrant.use_tls.value === "1"}
+														checked={isEnvVarTrue(formStates.qdrant.use_tls)}
 														onCheckedChange={(checked) =>
 															updateQdrant({ use_tls: { value: checked ? "true" : "false", env_var: "", from_env: false } })
 														}
