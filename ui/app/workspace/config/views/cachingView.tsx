@@ -19,7 +19,7 @@ import PluginsForm from "./pluginsForm";
 
 /** Returns true when a boolean-like EnvVar should be considered enabled. */
 function isEnvVarTrue(ev: EnvVar): boolean {
-	return ev.from_env || ev.value === "true" || ev.value === "1";
+	return ev.from_env || ev.value?.toLowerCase() === "true" || ev.value === "1";
 }
 
 function isEnvVarPopulated(ev: EnvVar): boolean {
@@ -452,7 +452,10 @@ export default function CachingView() {
 													type="number"
 													min={1}
 													value={formStates.redis.pool_size}
-													onChange={(e) => updateRedis({ pool_size: parseInt(e.target.value) || 10 })}
+													onChange={(e) => {
+														const val = parseInt(e.target.value);
+														updateRedis({ pool_size: isNaN(val) ? 0 : val });
+													}}
 												/>
 											</div>
 											<div className="space-y-2">

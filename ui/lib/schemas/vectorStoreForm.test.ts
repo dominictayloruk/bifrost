@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { vectorStoreFormSchema } from "./vectorStoreForm";
+import { vectorStoreFormSchema } from "@/lib/types/schemas";
 
 const env = (value: string) => ({ value, env_var: "", from_env: false });
 const envRef = (name: string) => ({ value: "", env_var: name, from_env: true });
