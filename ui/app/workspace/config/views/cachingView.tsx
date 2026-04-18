@@ -131,13 +131,13 @@ function buildConfigPayload(
 				pool_size: forms.redis.pool_size,
 				use_tls: forms.redis.use_tls,
 				cluster_mode: forms.redis.cluster_mode,
-				username: isEnvVarPopulated(forms.redis.username) ? forms.redis.username : { ...clearedEnvVar },
-				password: isEnvVarPopulated(forms.redis.password) ? forms.redis.password : { ...clearedEnvVar },
+				username: forms.redis.username,
+				password: forms.redis.password,
 			};
 			const tlsEnabled = isEnvVarTrue(forms.redis.use_tls);
 			if (tlsEnabled) {
 				redis.insecure_skip_verify = forms.redis.insecure_skip_verify;
-				redis.ca_cert_pem = isEnvVarPopulated(forms.redis.ca_cert_pem) ? forms.redis.ca_cert_pem : { ...clearedEnvVar };
+				redis.ca_cert_pem = forms.redis.ca_cert_pem;
 			} else {
 				redis.ca_cert_pem = { ...clearedEnvVar };
 			}
