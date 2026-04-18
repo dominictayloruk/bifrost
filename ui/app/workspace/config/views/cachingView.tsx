@@ -25,6 +25,20 @@ function isEnvVarTrue(ev: EnvVar): boolean {
 	return ev.from_env || ev.value === "true" || ev.value === "1";
 }
 
+/**
+ * Returns true when an EnvVar carries a user-supplied value (or env-var ref).
+ * Returns false when the field is empty or still holds a redaction placeholder
+ * that must never be sent back to the backend as an actual secret.
+ */
+function isEnvVarPopulated(ev: EnvVar): boolean {
+	if (ev.from_env) return true;
+	if (!ev.value || ev.value === "<redacted>") return false;
+	return true;
+}
+
+/** Canonical empty EnvVar suitable for sending to the backend to clear a field. */
+const clearedEnvVar: EnvVar = { value: "", env_var: "", from_env: false };
+
 type VectorStoreProvider = "redis" | "weaviate" | "qdrant" | "pinecone";
 
 const providerLabels: Record<VectorStoreProvider, string> = {
@@ -117,13 +131,15 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates, se
 				pool_size: forms.redis.pool_size,
 				use_tls: forms.redis.use_tls,
 				cluster_mode: forms.redis.cluster_mode,
+				username: isEnvVarPopulated(forms.redis.username) ? forms.redis.username : { ...clearedEnvVar },
+				password: isEnvVarPopulated(forms.redis.password) ? forms.redis.password : { ...clearedEnvVar },
 			};
-			if (forms.redis.username.value || forms.redis.username.from_env) redis.username = forms.redis.username;
-			if (forms.redis.password.value || forms.redis.password.from_env) redis.password = forms.redis.password;
 			const tlsEnabled = isEnvVarTrue(forms.redis.use_tls);
 			if (tlsEnabled) {
 				redis.insecure_skip_verify = forms.redis.insecure_skip_verify;
-				if (forms.redis.ca_cert_pem.value || forms.redis.ca_cert_pem.from_env) redis.ca_cert_pem = forms.redis.ca_cert_pem;
+				redis.ca_cert_pem = isEnvVarPopulated(forms.redis.ca_cert_pem) ? forms.redis.ca_cert_pem : { ...clearedEnvVar };
+			} else {
+				redis.ca_cert_pem = { ...clearedEnvVar };
 			}
 			return redis;
 		}
@@ -134,11 +150,13 @@ function buildConfigPayload(provider: VectorStoreProvider, forms: FormStates, se
 				host: forms.weaviate.host,
 				api_key: forms.weaviate.api_key,
 			};
-			if (forms.weaviate.grpc_host.value || forms.weaviate.grpc_host.from_env) {
+			if (isEnvVarPopulated(forms.weaviate.grpc_host)) {
 				weaviate.grpc_config = {
 					host: forms.weaviate.grpc_host,
 					secured: forms.weaviate.grpc_secured,
 				};
+			} else {
+				delete weaviate.grpc_config;
 			}
 			return weaviate;
 		}
