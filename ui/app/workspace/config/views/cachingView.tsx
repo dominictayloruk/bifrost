@@ -315,7 +315,11 @@ export default function CachingView() {
 			const response = await updateVectorStoreConfig({
 				enabled,
 				type: provider,
-				config: buildConfigPayload(provider, formStates, vsConfig?.config as Record<string, unknown> | null),
+				config: buildConfigPayload(
+					provider,
+					formStates,
+					vsConfig?.type === provider ? (vsConfig?.config as Record<string, unknown> | null) : null,
+				),
 			}).unwrap();
 			const snapshot = { enabled, provider, forms: structuredClone(formStates) };
 			setServerSnapshot(snapshot);
