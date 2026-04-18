@@ -14,6 +14,7 @@ import {
 	useUpdateVectorStoreConfigMutation,
 } from "@/lib/store";
 import { EnvVar } from "@/lib/types/schemas";
+import { isRedacted } from "@/lib/utils/validation";
 import { AlertTriangle, CircleCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { RbacOperation, RbacResource, useRbac } from "@enterprise/lib";
@@ -32,7 +33,7 @@ function isEnvVarTrue(ev: EnvVar): boolean {
  */
 function isEnvVarPopulated(ev: EnvVar): boolean {
 	if (ev.from_env) return true;
-	if (!ev.value || ev.value === "<redacted>") return false;
+	if (!ev.value || isRedacted(ev.value)) return false;
 	return true;
 }
 
