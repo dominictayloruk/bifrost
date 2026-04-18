@@ -649,7 +649,7 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 		// Check DB for stored config (only if not explicitly enabled in file)
 		vsConfig, dbErr := config.ConfigStore.GetVectorStoreConfig(ctx)
 		if dbErr != nil {
-			return fmt.Errorf("failed to get vector store config from store: %w", dbErr)
+			logger.Warn("failed to get vector store config from store: %v — server will continue without vector store", dbErr)
 		}
 		if vsConfig != nil && vsConfig.Enabled {
 			logger.Info("connecting to vectorstore (from store)")
