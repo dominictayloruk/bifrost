@@ -133,6 +133,7 @@ function buildConfigPayload(
 				redis.insecure_skip_verify = forms.redis.insecure_skip_verify;
 				redis.ca_cert_pem = forms.redis.ca_cert_pem;
 			} else {
+				redis.insecure_skip_verify = { ...clearedEnvVar };
 				redis.ca_cert_pem = { ...clearedEnvVar };
 			}
 			return redis;
