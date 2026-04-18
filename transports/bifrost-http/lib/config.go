@@ -4039,7 +4039,7 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 			redactedWeaviateConfig.APIKey = redactedWeaviateConfig.APIKey.Redacted()
 		}
 		redactedVectorStoreConfig := *vectorStoreConfig
-		redactedVectorStoreConfig.Config = &redactedWeaviateConfig
+		redactedVectorStoreConfig.Config = redactedWeaviateConfig
 		return &redactedVectorStoreConfig, nil
 
 	case vectorstore.VectorStoreTypeRedis:
@@ -4057,7 +4057,7 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 			redactedRedisConfig.CACertPEM = redactedRedisConfig.CACertPEM.Redacted()
 		}
 		redactedVectorStoreConfig := *vectorStoreConfig
-		redactedVectorStoreConfig.Config = &redactedRedisConfig
+		redactedVectorStoreConfig.Config = redactedRedisConfig
 		return &redactedVectorStoreConfig, nil
 
 	case vectorstore.VectorStoreTypeQdrant:
@@ -4068,7 +4068,7 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		redactedQdrantConfig := qdrantConfig
 		redactedQdrantConfig.APIKey = *redactedQdrantConfig.APIKey.Redacted()
 		redactedVectorStoreConfig := *vectorStoreConfig
-		redactedVectorStoreConfig.Config = &redactedQdrantConfig
+		redactedVectorStoreConfig.Config = redactedQdrantConfig
 		return &redactedVectorStoreConfig, nil
 
 	case vectorstore.VectorStoreTypePinecone:
@@ -4079,7 +4079,7 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		redactedPineconeConfig := pineconeConfig
 		redactedPineconeConfig.APIKey = *redactedPineconeConfig.APIKey.Redacted()
 		redactedVectorStoreConfig := *vectorStoreConfig
-		redactedVectorStoreConfig.Config = &redactedPineconeConfig
+		redactedVectorStoreConfig.Config = redactedPineconeConfig
 		return &redactedVectorStoreConfig, nil
 
 	default:
