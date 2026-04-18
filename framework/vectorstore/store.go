@@ -197,25 +197,25 @@ func (c *Config) Validate() error {
 	case VectorStoreTypeRedis:
 		cfg, ok := c.Config.(RedisConfig)
 		if !ok {
-			return fmt.Errorf("invalid redis config")
+			return fmt.Errorf("invalid redis config: got %T", c.Config)
 		}
 		return cfg.Validate()
 	case VectorStoreTypeWeaviate:
 		cfg, ok := c.Config.(WeaviateConfig)
 		if !ok {
-			return fmt.Errorf("invalid weaviate config")
+			return fmt.Errorf("invalid weaviate config: got %T", c.Config)
 		}
 		return cfg.Validate()
 	case VectorStoreTypeQdrant:
 		cfg, ok := c.Config.(QdrantConfig)
 		if !ok {
-			return fmt.Errorf("invalid qdrant config")
+			return fmt.Errorf("invalid qdrant config: got %T", c.Config)
 		}
 		return cfg.Validate()
 	case VectorStoreTypePinecone:
 		cfg, ok := c.Config.(PineconeConfig)
 		if !ok {
-			return fmt.Errorf("invalid pinecone config")
+			return fmt.Errorf("invalid pinecone config: got %T", c.Config)
 		}
 		return cfg.Validate()
 	default:

@@ -1,3 +1,4 @@
+[fix]: use isEnvVarTrue for cluster_mode and insecure_skip_verify switches in Redis vector store UI [@dominictayloruk](https://github.com/dominictayloruk)
 [refactor]: extract isEnvVarTrue utility and deduplicate TLS checks in caching UI [@dominictayloruk](https://github.com/dominictayloruk)
 [fix]: prevent env-var rename from being silently overwritten during secret merge [@dominictayloruk](https://github.com/dominictayloruk)
 [refactor]: move validation and secret merge logic to vectorstore.Config methods [@dominictayloruk](https://github.com/dominictayloruk)

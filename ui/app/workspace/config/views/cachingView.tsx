@@ -449,7 +449,7 @@ export default function CachingView() {
 													<Switch
 														id="vs-redis-cluster" data-testid="vs-redis-cluster"
 														size="md"
-														checked={formStates.redis.cluster_mode.value === "true" || formStates.redis.cluster_mode.value === "1"}
+														checked={isEnvVarTrue(formStates.redis.cluster_mode)}
 														onCheckedChange={(checked) =>
 															updateRedis({ cluster_mode: { value: checked ? "true" : "false", env_var: "", from_env: false } })
 														}
@@ -478,7 +478,7 @@ export default function CachingView() {
 														<Switch
 															id="vs-redis-skip-verify" data-testid="vs-redis-skip-verify"
 															size="md"
-															checked={formStates.redis.insecure_skip_verify.value === "true" || formStates.redis.insecure_skip_verify.value === "1"}
+															checked={isEnvVarTrue(formStates.redis.insecure_skip_verify)}
 															onCheckedChange={(checked) =>
 																updateRedis({ insecure_skip_verify: { value: checked ? "true" : "false", env_var: "", from_env: false } })
 															}
