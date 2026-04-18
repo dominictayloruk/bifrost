@@ -1,2 +1,7 @@
+[fix]: render PluginsForm independently of vector store config API errors [@dominictayloruk](https://github.com/dominictayloruk)
+[feat]: add vector store config UI on Settings > Caching page with all four providers [@dominictayloruk](https://github.com/dominictayloruk)
+[feat]: add GET/PUT /api/cache/config endpoints for vector store configuration [@dominictayloruk](https://github.com/dominictayloruk)
 [feat]: add server-side validation for Qdrant and Pinecone vector store configs [@dominictayloruk](https://github.com/dominictayloruk)
-[fix]: prefer DB-stored vector store config when file config is disabled [@dominictayloruk](https://github.com/dominictayloruk)
+[feat]: add redaction for Redis, Qdrant, and Pinecone vector store configs [@dominictayloruk](https://github.com/dominictayloruk)
+[fix]: prefer DB-stored vector store config when file config is absent [@dominictayloruk](https://github.com/dominictayloruk)
+[fix]: replace logger.Fatal with returned error on vector store connection failure [@dominictayloruk](https://github.com/dominictayloruk)
