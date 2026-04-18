@@ -655,7 +655,14 @@ func initStores(ctx context.Context, config *Config, configData *ConfigData, con
 			logger.Info("connecting to vectorstore (from store)")
 			config.VectorStore, err = vectorstore.NewVectorStore(ctx, vsConfig, logger)
 			if err != nil {
-				return fmt.Errorf("failed to connect to vector store (from store): %w", err)
+				logger.Warn("failed to connect to vector store (from store): %v — server will continue without vector store", err)
+				config.VectorStore = nil
+				if setErr := config.ConfigStore.SetRestartRequiredConfig(ctx, &configstoreTables.RestartRequiredConfig{
+					Required: true,
+					Reason:   fmt.Sprintf("Vector store connection failed: %v. Check your configuration and restart.", err),
+				}); setErr != nil {
+					logger.Warn("failed to set restart required flag: %v", setErr)
+				}
 			}
 		}
 	}
@@ -4076,8 +4083,10 @@ func (c *Config) GetVectorStoreConfigRedacted(ctx context.Context) (*vectorstore
 		return &redactedVectorStoreConfig, nil
 
 	default:
-		// Return config as-is for unknown/future types (no sensitive fields to redact)
-		return vectorStoreConfig, nil
+		// Strip config payload for unknown types to avoid leaking secrets
+		redactedVectorStoreConfig := *vectorStoreConfig
+		redactedVectorStoreConfig.Config = nil
+		return &redactedVectorStoreConfig, nil
 	}
 }
 

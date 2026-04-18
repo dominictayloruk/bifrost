@@ -1,3 +1,4 @@
+[fix]: gracefully handle DB-persisted vector store connection failure at startup [@dominictayloruk](https://github.com/dominictayloruk)
 [fix]: render PluginsForm independently of vector store config API errors [@dominictayloruk](https://github.com/dominictayloruk)
 [feat]: add vector store config UI on Settings > Caching page with all four providers [@dominictayloruk](https://github.com/dominictayloruk)
 [feat]: add GET/PUT /api/cache/config endpoints for vector store configuration [@dominictayloruk](https://github.com/dominictayloruk)
