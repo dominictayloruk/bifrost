@@ -1584,6 +1584,7 @@ func (s *RDBConfigStore) saveVectorStoreConfigInTx(tx *gorm.DB, ctx context.Cont
 		Type:            string(config.Type),
 		Enabled:         config.Enabled,
 		Config:          jsonConfig,
+		CreatedAt:       existing.CreatedAt,
 	}
 	return tx.WithContext(ctx).Save(record).Error
 }
