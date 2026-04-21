@@ -372,7 +372,6 @@ import (
 	"github.com/maximhq/bifrost/framework/configstore/tables"
 	"github.com/maximhq/bifrost/framework/encrypt"
 	"github.com/maximhq/bifrost/framework/logstore"
-	"github.com/maximhq/bifrost/framework/migrator"
 	"github.com/maximhq/bifrost/framework/modelcatalog"
 	"github.com/maximhq/bifrost/framework/vectorstore"
 	"github.com/stretchr/testify/require"
@@ -418,6 +417,9 @@ func NewMockConfigStore() *MockConfigStore {
 }
 
 // Implement ConfigStore interface methods
+func (m *MockConfigStore) RefreshConnectionPool(ctx context.Context) error {
+	return nil
+}
 func (m *MockConfigStore) Ping(ctx context.Context) error                 { return nil }
 func (m *MockConfigStore) EncryptPlaintextRows(ctx context.Context) error { return nil }
 func (m *MockConfigStore) Close(ctx context.Context) error                { return nil }
@@ -426,7 +428,7 @@ func (m *MockConfigStore) ExecuteTransaction(ctx context.Context, fn func(tx *go
 	return fn(nil)
 }
 
-func (m *MockConfigStore) RunMigration(ctx context.Context, migration *migrator.Migration) error {
+func (m *MockConfigStore) RunMigration(context.Context, func(context.Context, *gorm.DB) error) error {
 	return nil
 }
 
@@ -545,6 +547,10 @@ func (m *MockConfigStore) GetMCPClientByID(ctx context.Context, id string) (*tab
 	return nil, nil
 }
 
+func (m *MockConfigStore) GetMCPClientConfigByID(ctx context.Context, id string) (*schemas.MCPClientConfig, error) {
+	return nil, nil
+}
+
 func (m *MockConfigStore) GetMCPClientByName(ctx context.Context, name string) (*tables.TableMCPClient, error) {
 	return nil, nil
 }
@@ -609,10 +615,6 @@ func (m *MockConfigStore) UpdateMCPClientConfig(ctx context.Context, id string, 
 
 func (m *MockConfigStore) GetMCPClientsPaginated(ctx context.Context, params configstore.MCPClientsQueryParams) ([]tables.TableMCPClient, int64, error) {
 	return nil, 0, nil
-}
-
-func (m *MockConfigStore) UpdateMCPClientDiscoveredTools(ctx context.Context, clientID string, tools map[string]schemas.ChatTool, toolNameMapping map[string]string) error {
-	return nil
 }
 
 func (m *MockConfigStore) DeleteMCPClientConfig(ctx context.Context, id string) error {
@@ -11697,7 +11699,7 @@ func TestGenerateTeamHash(t *testing.T) {
 		ID:            "team-1",
 		Name:          "Test Team",
 		CustomerID:    &customerID,
-		BudgetID:      &budgetID,
+		Budgets:       []tables.TableBudget{{ID: budgetID}},
 		ParsedProfile: map[string]interface{}{"key": "value"},
 		ParsedConfig:  map[string]interface{}{"setting": true},
 		ParsedClaims:  map[string]interface{}{"role": "admin"},
@@ -11745,7 +11747,7 @@ func TestGenerateTeamHash(t *testing.T) {
 	// Different BudgetID should produce different hash
 	newBudgetID := "budget-2"
 	team5 := team1
-	team5.BudgetID = &newBudgetID
+	team5.Budgets = []tables.TableBudget{{ID: newBudgetID}}
 	hash5, _ := configstore.GenerateTeamHash(team5)
 	if hash1 == hash5 {
 		t.Error("Different BudgetID should produce different hash")
@@ -13093,7 +13095,7 @@ func TestGenerateTeamHash_RuntimeVsMigrationParity(t *testing.T) {
 	initTestLogger()
 
 	db := setupTestDB(t)
-	if err := db.AutoMigrate(&tables.TableTeam{}); err != nil {
+	if err := db.AutoMigrate(&tables.TableBudget{}, &tables.TableTeam{}); err != nil {
 		t.Fatalf("Failed to migrate: %v", err)
 	}
 
@@ -13185,13 +13187,17 @@ func TestGenerateTeamHash_RuntimeVsMigrationParity(t *testing.T) {
 	// Test case 4: All fields
 	t.Run("AllFields_GORMRoundTrip", func(t *testing.T) {
 		customerID := "customer-1"
-		budgetID := "budget-1"
+		budgetID := uuid.New().String()
 
 		teamToSave := tables.TableTeam{
-			ID:            uuid.New().String(),
-			Name:          "Test Team All",
-			CustomerID:    &customerID,
-			BudgetID:      &budgetID,
+			ID:         uuid.New().String(),
+			Name:       "Test Team All",
+			CustomerID: &customerID,
+			Budgets: []tables.TableBudget{{
+				ID:            budgetID,
+				ResetDuration: "1h",
+				MaxLimit:      100.0,
+			}},
 			ParsedProfile: map[string]interface{}{"key": "value"},
 			ParsedConfig:  map[string]interface{}{"setting": true},
 			ParsedClaims:  map[string]interface{}{"role": "user"},
@@ -13201,7 +13207,7 @@ func TestGenerateTeamHash_RuntimeVsMigrationParity(t *testing.T) {
 		db.Create(&teamToSave)
 
 		var teamFromDB tables.TableTeam
-		db.Where("id = ?", teamToSave.ID).First(&teamFromDB)
+		db.Preload("Budgets").Where("id = ?", teamToSave.ID).First(&teamFromDB)
 
 		hashAfterLoad, _ := configstore.GenerateTeamHash(teamFromDB)
 
