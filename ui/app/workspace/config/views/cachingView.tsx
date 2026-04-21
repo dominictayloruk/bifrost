@@ -454,7 +454,7 @@ export default function CachingView() {
 													value={formStates.redis.pool_size}
 													onChange={(e) => {
 														const val = parseInt(e.target.value);
-														updateRedis({ pool_size: isNaN(val) ? 0 : val });
+														updateRedis({ pool_size: isNaN(val) || val < 1 ? 1 : val });
 													}}
 												/>
 											</div>
