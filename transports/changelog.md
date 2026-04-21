@@ -1,5 +1,9 @@
 ## ✨ Features
 
+- **Vector Store Config UI** — Add vector store config UI on Settings > Caching page with all four providers [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Config API** — Add GET/PUT /api/cache/config endpoints for vector store configuration [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Server Validation** — Add server-side validation for Qdrant and Pinecone vector store configs [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Config Redaction** — Add redaction for Redis, Qdrant, and Pinecone vector store configs [@dominictayloruk](https://github.com/dominictayloruk)
 - **Claude Opus 4.7** — Added compatibility for Anthropic's Claude Opus 4.7 model, including adaptive thinking, task-budgets beta header, `display` parameter handling, and "xhigh" effort mapping
 - **Anthropic Structured Outputs** — Added `response_format` and structured output support for Anthropic models across chat completions and Responses API, with order-preserving merge of additional model request fields (thanks [@emirhanmutlu-natuvion](https://github.com/emirhanmutlu-natuvion)!)
 - **MCP Tool Annotations** — Preserve MCP tool annotations (`title`, `readOnly`, `destructive`, `idempotent`, `openWorld`) in bidirectional conversion so agents can reason about tool behavior
@@ -11,8 +15,23 @@
 - **User Agent Detection** — Improved multi-user-agent detection with tool call reduplication fix for mixed-client environments
 - **Per-User OAuth Codemode** — OAuth server selection and validation per-user in codemode
 
+## 🔧 Refactored
+
+- **Vector Store Validation** — Move validation and secret merge logic to vectorstore.Config methods [@dominictayloruk](https://github.com/dominictayloruk)
+- **Caching UI TLS Checks** — Extract isEnvVarTrue utility and deduplicate TLS checks in caching UI [@dominictayloruk](https://github.com/dominictayloruk)
+
 ## 🐞 Fixed
 
+- **Vector Store Backend Config** — Preserve backend-only config fields when saving vector store settings from UI [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Env Var Switches** — Use isEnvVarTrue for cluster_mode and insecure_skip_verify switches in Redis vector store UI [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Secret Merge** — Prevent env-var rename from being silently overwritten during secret merge [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Redaction Types** — Use value types for redacted vector store config to prevent type assertion failures [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Redacted Secrets** — Preserve redacted secrets when updating vector store config via UI [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store TLS Env Vars** — Account for env-var-driven TLS when building Redis vector store config payload in UI [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Startup** — Gracefully handle DB-persisted vector store connection failure at startup [@dominictayloruk](https://github.com/dominictayloruk)
+- **Plugins Form Independence** — Render PluginsForm independently of vector store config API errors [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store DB Fallback** — Prefer DB-stored vector store config when file config is absent [@dominictayloruk](https://github.com/dominictayloruk)
+- **Vector Store Fatal Error** — Replace logger.Fatal with returned error on vector store connection failure [@dominictayloruk](https://github.com/dominictayloruk)
 - **Provider Queue Shutdown Panic** — Eliminated `send on closed channel` panics in provider queue shutdown by leaving channels open and exiting workers via the done signal; stale producers transparently re-route to new queues during `UpdateProvider`
 - **OpenAI Tool Result Output** — Flatten array-form `tool_result` output into a newline-joined string for the Responses API so strict upstreams (Ollama Cloud, openai-go typed models) no longer reject with HTTP 400 (thanks [@martingiguere](https://github.com/martingiguere)!)
 - **vLLM Token Usage** — Treat `delta.content=""` the same as `nil` in streaming so the synthesis chunk retains its `finish_reason`, restoring token usage attribution in logs and UI

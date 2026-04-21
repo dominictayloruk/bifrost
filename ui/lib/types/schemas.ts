@@ -63,7 +63,7 @@ export const envVarSchema = z.object({
 });
 
 // Helper to check if an envVar field has a value or env reference
-function isEnvVarSet(v: { value?: string; env_var?: string } | undefined): boolean {
+export function isEnvVarSet(v: { value?: string; env_var?: string } | undefined): boolean {
 	if (!v) return false;
 	return !!v.value?.trim() || !!v.env_var?.trim();
 }
@@ -1082,6 +1082,32 @@ export const routingRuleSchema = z
 		message: "Scope ID is required when scope is not global",
 		path: ["scope_id"],
 	});
+
+// Vector store form schema
+const requiredEnvVar = (message: string) => envVarSchema.refine(isEnvVarSet, { message });
+
+const redisSchema = z.object({
+	provider: z.literal("redis"),
+	addr: requiredEnvVar("Redis address is required"),
+});
+
+const weaviateSchema = z.object({
+	provider: z.literal("weaviate"),
+	host: requiredEnvVar("Weaviate host is required"),
+});
+
+const qdrantSchema = z.object({
+	provider: z.literal("qdrant"),
+	host: requiredEnvVar("Qdrant host is required"),
+});
+
+const pineconeSchema = z.object({
+	provider: z.literal("pinecone"),
+	api_key: requiredEnvVar("Pinecone API key is required"),
+	index_host: requiredEnvVar("Pinecone index host is required"),
+});
+
+export const vectorStoreFormSchema = z.discriminatedUnion("provider", [redisSchema, weaviateSchema, qdrantSchema, pineconeSchema]);
 
 // Export type inference helpers
 export type EnvVar = z.infer<typeof envVarSchema>;
